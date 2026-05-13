@@ -1,4 +1,4 @@
-// lib/models/transaction_model.dart
+
 enum TransactionType { income, expense }
 
 class TransactionModel {

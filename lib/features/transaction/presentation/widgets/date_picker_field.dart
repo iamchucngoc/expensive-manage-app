@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 
-class DatePickerField extends StatefulWidget {
-  const DatePickerField({super.key});
+class DatePickerField extends StatelessWidget {
 
-  @override
-  State<DatePickerField> createState() =>
-      _DatePickerFieldState();
-}
+  final DateTime selectedDate;
 
-class _DatePickerFieldState
-    extends State<DatePickerField> {
+  final Function(DateTime) onSelectDate;
 
-  DateTime selectedDate = DateTime.now();
+  const DatePickerField({
+    super.key,
+    required this.selectedDate,
+    required this.onSelectDate,
+  });
 
-  Future<void> pickDate() async {
+  Future<void> pickDate(
+    BuildContext context,
+  ) async {
 
-    final pickedDate = await showDatePicker(
+    final pickedDate =
+        await showDatePicker(
       context: context,
 
       initialDate: selectedDate,
@@ -26,9 +28,7 @@ class _DatePickerFieldState
     );
 
     if (pickedDate != null) {
-      setState(() {
-        selectedDate = pickedDate;
-      });
+      onSelectDate(pickedDate);
     }
   }
 
@@ -39,7 +39,9 @@ class _DatePickerFieldState
         '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}';
 
     return GestureDetector(
-      onTap: pickDate,
+      onTap: () {
+        pickDate(context);
+      },
 
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -59,7 +61,6 @@ class _DatePickerFieldState
 
             const Icon(
               Icons.calendar_month,
-              color: Colors.black87,
             ),
 
             const SizedBox(width: 10),
@@ -67,10 +68,6 @@ class _DatePickerFieldState
             Expanded(
               child: Text(
                 formattedDate,
-
-                style: const TextStyle(
-                  fontSize: 15,
-                ),
               ),
             ),
           ],

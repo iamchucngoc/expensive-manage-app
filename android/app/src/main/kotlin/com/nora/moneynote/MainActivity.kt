@@ -1,4 +1,4 @@
-package com.example.app
+package com.nora.moneynote
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 
 class NoteInput extends StatelessWidget {
-  const NoteInput({super.key});
+
+  final TextEditingController controller;
+
+  const NoteInput({
+    super.key,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-      ),
+    return TextField(
+      controller: controller,
 
-      decoration: BoxDecoration(
-        color: Colors.white,
+      decoration: InputDecoration(
+        hintText: 'Ghi chú',
 
-        borderRadius:
-            BorderRadius.circular(14),
-      ),
+        filled: true,
 
-      child: const TextField(
-        decoration: InputDecoration(
-          border: InputBorder.none,
+        fillColor: Colors.white,
 
-          icon: Icon(Icons.edit_note),
+        border: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(14),
 
-          hintText: 'Ghi chú',
+          borderSide: BorderSide.none,
+        ),
+
+        contentPadding:
+            const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
         ),
       ),
     );
