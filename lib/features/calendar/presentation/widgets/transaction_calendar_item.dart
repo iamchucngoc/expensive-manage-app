@@ -1,147 +1,159 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
+import '../../../../services/firestore_service.dart';
+
+import '../../../transaction/data/models/transaction_model.dart';
+
 class TransactionCalendarItem
     extends StatelessWidget {
 
-  final Map<String, dynamic> item;
+  final TransactionModel
+      transaction;
 
   const TransactionCalendarItem({
     super.key,
-    required this.item,
+    required this.transaction,
   });
 
   @override
   Widget build(BuildContext context) {
 
-    return Padding(
-      padding:
-          const EdgeInsets.only(
-        bottom: 10,
+    final isExpense =
+        transaction.type ==
+            TransactionType.expense;
+
+    return Slidable(
+
+      endActionPane: ActionPane(
+        motion:
+            const StretchMotion(),
+
+        children: [
+
+          SlidableAction(
+            onPressed: (_) async {
+
+              await FirestoreService()
+                  .deleteTransaction(
+                transaction.id,
+              );
+            },
+
+            backgroundColor:
+                Colors.red,
+
+            icon: Icons.delete,
+          ),
+        ],
       ),
 
-      child: Slidable(
+      child: GestureDetector(
 
-        endActionPane: ActionPane(
-          motion:
-              const DrawerMotion(),
+        onTap: () {
 
-          children: [
+          // sau này:
+          // navigate sang edit transaction
+        },
 
-            SlidableAction(
-              onPressed: (context) {
+        child: Container(
+          margin:
+              const EdgeInsets.only(
+            bottom: 12,
+          ),
 
-              },
+          padding:
+              const EdgeInsets.all(14),
 
-              backgroundColor:
-                  Colors.red,
+          decoration: BoxDecoration(
+            color: Colors.white,
 
-              icon: Icons.delete,
-
-              label: 'Xóa',
+            borderRadius:
+                BorderRadius.circular(
+              16,
             ),
-          ],
-        ),
+          ),
 
-        child: GestureDetector(
+          child: Row(
+            children: [
 
-          onTap: () {
+              Container(
+                width: 50,
+                height: 50,
 
-            Navigator.pushNamed(
-              context,
-              '/add-transaction',
-            );
-          },
+                decoration:
+                    BoxDecoration(
+                  color:
+                      Colors.grey
+                          .shade100,
 
-          child: Container(
-            padding:
-                const EdgeInsets.all(14),
-
-            decoration: BoxDecoration(
-              color: Colors.white,
-
-              borderRadius:
-                  BorderRadius.circular(
-                18,
-              ),
-            ),
-
-            child: Row(
-              children: [
-
-                CircleAvatar(
-                  radius: 24,
-
-                  backgroundColor:
-                      Colors.orange
-                          .withOpacity(
-                    0.15,
+                  borderRadius:
+                      BorderRadius.circular(
+                    14,
                   ),
+                ),
 
+                child: const Center(
                   child: Text(
-                    item['icon'],
-                    style:
-                        const TextStyle(
-                      fontSize: 20,
+                    '💸',
+
+                    style: TextStyle(
+                      fontSize: 24,
                     ),
                   ),
                 ),
+              ),
 
-                const SizedBox(width: 14),
+              const SizedBox(width: 14),
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment
+                          .start,
 
-                    children: [
+                  children: [
 
-                      Text(
-                        item['title'],
+                    Text(
+                      transaction
+                          .categoryName,
 
-                        style:
-                            const TextStyle(
-                          fontSize: 16,
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
+                      style:
+                          const TextStyle(
+                        fontWeight:
+                            FontWeight
+                                .bold,
+                        fontSize: 16,
                       ),
+                    ),
 
-                      const SizedBox(
-                        height: 4,
-                      ),
+                    const SizedBox(
+                      height: 4,
+                    ),
 
-                      Text(
-                        item['subtitle'],
-
-                        style:
-                            const TextStyle(
-                          color:
-                              Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
+                    Text(
+                      transaction.note ??
+                          '',
+                    ),
+                  ],
                 ),
+              ),
 
-                Text(
-                  item['amount'],
+              Text(
+                '${isExpense ? '-' : '+'}${transaction.amount.toInt()}đ',
 
-                  style: TextStyle(
-                    color:
-                        item['isExpense']
-                            ? Colors.red
-                            : Colors.green,
+                style: TextStyle(
+                  color: isExpense
+                      ? Colors.red
+                      : Colors.green,
 
-                    fontWeight:
-                        FontWeight.bold,
+                  fontWeight:
+                      FontWeight.bold,
 
-                    fontSize: 16,
-                  ),
+                  fontSize: 16,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../transaction/data/models/transaction_model.dart';
+
+import '../../../../services/firestore_service.dart';
+
 import 'transaction_calendar_item.dart';
 
 class DailyTransactionList
@@ -15,83 +19,61 @@ class DailyTransactionList
   @override
   Widget build(BuildContext context) {
 
-    final transactions = [
+    return StreamBuilder<
+        List<TransactionModel>>(
+      stream:
+          FirestoreService()
+              .getTransactions(),
 
-      {
-        'title': 'Ăn uống',
-        'subtitle': 'Ăn trưa',
-        'amount': '-150k',
-        'icon': '🍜',
-        'isExpense': true,
-      },
+      builder: (context, snapshot) {
 
-      {
-        'title': 'Di chuyển',
-        'subtitle': 'Xe buýt',
-        'amount': '-30k',
-        'icon': '🚗',
-        'isExpense': true,
-      },
+        if (!snapshot.hasData) {
+          return const Center(
+            child:
+                CircularProgressIndicator(),
+          );
+        }
 
-      {
-        'title': 'Lương',
-        'subtitle': 'Lương tháng 4',
-        'amount': '+15000k',
-        'icon': '💰',
-        'isExpense': false,
-      },
-    ];
+        final transactions =
+            snapshot.data!;
 
-    return Column(
-      children: [
+        final filtered =
+            transactions.where((e) {
 
-        Padding(
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 16,
-          ),
+          return e.date.year ==
+                  selectedDate.year &&
+              e.date.month ==
+                  selectedDate.month &&
+              e.date.day ==
+                  selectedDate.day;
+        }).toList();
 
-          child: Row(
-            children: const [
-
-              Text(
-                'Danh sách giao dịch',
-
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Expanded(
-          child: ListView.builder(
-            padding:
-                const EdgeInsets.symmetric(
-              horizontal: 12,
+        if (filtered.isEmpty) {
+          return const Center(
+            child: Text(
+              'Không có giao dịch',
             ),
+          );
+        }
 
-            itemCount:
-                transactions.length,
+        return ListView.builder(
+          padding:
+              const EdgeInsets.all(12),
 
-            itemBuilder:
-                (context, index) {
+          itemCount: filtered.length,
 
-              final item =
-                  transactions[index];
+          itemBuilder: (context, index) {
 
-              return TransactionCalendarItem(
-                item: item,
-              );
-            },
-          ),
-        ),
-      ],
+            final transaction =
+                filtered[index];
+
+            return TransactionCalendarItem(
+              transaction:
+                  transaction,
+            );
+          },
+        );
+      },
     );
   }
 }
