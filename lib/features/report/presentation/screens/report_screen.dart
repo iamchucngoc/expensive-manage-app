@@ -195,7 +195,7 @@ class _ReportScreenState
                         _buildToggle(),
 
                         const SizedBox(
-                          height: 20,
+                          height: 24,
                         ),
 
                         _buildChart(
@@ -216,9 +216,10 @@ class _ReportScreenState
                             final percent =
                                 total >
                                         0
-                                    ? (entry.value /
-                                            total) *
-                                        100.0
+                                    ? ((entry.value /
+                                                total) *
+                                            100)
+                                        .toDouble()
                                     : 0.0;
 
                             return CategoryReportItem(
@@ -262,6 +263,10 @@ class _ReportScreenState
                             );
                           },
                         ),
+
+                        const SizedBox(
+                          height: 20,
+                        ),
                       ],
                     ),
                   ),
@@ -276,69 +281,48 @@ class _ReportScreenState
 
   Widget _buildHeader() {
     return Container(
-      height: 70,
+      height: 72,
       color: Colors.white,
 
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
+      alignment: Alignment.center,
 
-      child: Row(
-        children: [
-          const Icon(
-            Icons.pie_chart_outline,
-            color: Colors.orange,
-            size: 30,
-          ),
+      child: Container(
+        height: 46,
 
-          const Spacer(),
+        padding: const EdgeInsets.all(4),
 
-          Container(
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius:
-                  BorderRadius.circular(
-                12,
-              ),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+
+          borderRadius:
+              BorderRadius.circular(14),
+        ),
+
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+            _modeButton(
+              "Hàng Tháng",
+              !isYearMode,
+              () {
+                setState(() {
+                  isYearMode = false;
+                });
+              },
             ),
 
-            child: Row(
-              children: [
-                _modeButton(
-                  "Hàng Tháng",
-                  !isYearMode,
-                  () {
-                    setState(() {
-                      isYearMode =
-                          false;
-                    });
-                  },
-                ),
-
-                _modeButton(
-                  "Hàng Năm",
-                  isYearMode,
-                  () {
-                    setState(() {
-                      isYearMode =
-                          true;
-                    });
-                  },
-                ),
-              ],
+            _modeButton(
+              "Hàng Năm",
+              isYearMode,
+              () {
+                setState(() {
+                  isYearMode = true;
+                });
+              },
             ),
-          ),
-
-          const Spacer(),
-
-          const Icon(
-            Icons.search,
-            color: Colors.orange,
-            size: 30,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -351,10 +335,14 @@ class _ReportScreenState
     return GestureDetector(
       onTap: onTap,
 
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(
+          milliseconds: 200,
+        ),
+
         padding:
             const EdgeInsets.symmetric(
-          horizontal: 18,
+          horizontal: 24,
           vertical: 10,
         ),
 
@@ -368,6 +356,23 @@ class _ReportScreenState
               BorderRadius.circular(
             12,
           ),
+
+          boxShadow:
+              selected
+                  ? [
+                    BoxShadow(
+                      color: Colors.orange
+                          .withOpacity(0.25),
+
+                      blurRadius: 6,
+
+                      offset: const Offset(
+                        0,
+                        2,
+                      ),
+                    ),
+                  ]
+                  : [],
         ),
 
         child: Text(
@@ -377,10 +382,12 @@ class _ReportScreenState
             color:
                 selected
                     ? Colors.white
-                    : Colors.orange,
+                    : Colors.black54,
 
             fontWeight:
                 FontWeight.bold,
+
+            fontSize: 15,
           ),
         ),
       ),
@@ -501,6 +508,7 @@ class _ReportScreenState
 
           style: const TextStyle(
             color: Colors.grey,
+            fontSize: 14,
           ),
         ),
 
@@ -511,7 +519,7 @@ class _ReportScreenState
 
           style: TextStyle(
             color: color,
-            fontSize: 28,
+            fontSize: 22,
             fontWeight:
                 FontWeight.bold,
           ),
@@ -521,34 +529,42 @@ class _ReportScreenState
   }
 
   Widget _buildToggle() {
-    return Container(
-      height: 42,
+    return Center(
+      child: Container(
+        height: 42,
 
-      margin:
-          const EdgeInsets.symmetric(
-        horizontal: 120,
-      ),
-
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-
-        borderRadius:
-            BorderRadius.circular(
-          10,
+        padding: const EdgeInsets.all(
+          4,
         ),
-      ),
 
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+
+          borderRadius:
+              BorderRadius.circular(
+            12,
+          ),
+        ),
+
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+            GestureDetector(
               onTap: () {
                 setState(() {
                   isExpense = true;
                 });
               },
 
-              child: Container(
+              child: AnimatedContainer(
+                duration:
+                    const Duration(
+                  milliseconds: 200,
+                ),
+
+                width: 80,
+
                 decoration: BoxDecoration(
                   color:
                       isExpense
@@ -569,7 +585,7 @@ class _ReportScreenState
                       color:
                           isExpense
                               ? Colors.white
-                              : Colors.grey,
+                              : Colors.black54,
 
                       fontWeight:
                           FontWeight.bold,
@@ -578,17 +594,22 @@ class _ReportScreenState
                 ),
               ),
             ),
-          ),
 
-          Expanded(
-            child: GestureDetector(
+            GestureDetector(
               onTap: () {
                 setState(() {
                   isExpense = false;
                 });
               },
 
-              child: Container(
+              child: AnimatedContainer(
+                duration:
+                    const Duration(
+                  milliseconds: 200,
+                ),
+
+                width: 80,
+
                 decoration: BoxDecoration(
                   color:
                       !isExpense
@@ -609,7 +630,7 @@ class _ReportScreenState
                       color:
                           !isExpense
                               ? Colors.white
-                              : Colors.grey,
+                              : Colors.black54,
 
                       fontWeight:
                           FontWeight.bold,
@@ -618,8 +639,8 @@ class _ReportScreenState
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
