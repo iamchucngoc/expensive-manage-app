@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-class CategoryGrid extends StatelessWidget {
+import '../../../category/data/models/category_model.dart';
 
-  final List<Map<String, dynamic>> categories;
+class CategoryGrid extends StatelessWidget {
+  final List<CategoryModel> categories;
 
   final String selectedCategory;
 
@@ -17,29 +18,22 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
         color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
       ),
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-
           const Text(
             'Danh mục',
-
             style: TextStyle(
-              fontWeight:
-                  FontWeight.bold,
+              fontWeight: FontWeight.bold,
             ),
           ),
 
@@ -62,19 +56,15 @@ class CategoryGrid extends StatelessWidget {
             ),
 
             itemBuilder: (context, index) {
-
-              final category =
-                  categories[index];
+              final category = categories[index];
 
               final isSelected =
                   selectedCategory ==
-                      category['title'];
+                      category.name;
 
               return GestureDetector(
                 onTap: () {
-                  onSelect(
-                    category['title'],
-                  );
+                  onSelect(category.name);
                 },
 
                 child: Container(
@@ -99,14 +89,11 @@ class CategoryGrid extends StatelessWidget {
 
                   child: Column(
                     mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
+                        MainAxisAlignment.center,
 
                     children: [
-
                       Text(
-                        category['icon'],
-
+                        category.icon,
                         style:
                             const TextStyle(
                           fontSize: 28,
@@ -118,7 +105,9 @@ class CategoryGrid extends StatelessWidget {
                       ),
 
                       Text(
-                        category['title'],
+                        category.name,
+                        textAlign:
+                            TextAlign.center,
 
                         style:
                             const TextStyle(

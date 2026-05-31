@@ -2,10 +2,16 @@
 
 import 'package:flutter/material.dart';
 
-import '../widgets/logout_button.dart';
+import '../../../budget/presentation/screens/budget_screen.dart';
+import '../../../category/presentation/screens/category_management_screen.dart';
+
+import 'profile_screen.dart';
+import 'change_password_screen.dart';
+
 import '../widgets/profile_card.dart';
 import '../widgets/setting_section.dart';
 import '../widgets/setting_tile.dart';
+import '../widgets/logout_button.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
@@ -16,97 +22,100 @@ class SettingScreen extends StatelessWidget {
       backgroundColor: const Color(0xfff5f5f5),
 
       body: SafeArea(
-        child: Column(
-          children: [
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
 
-            /// HEADER
-            Container(
-              height: 70,
-              width: double.infinity,
-              color: Colors.black,
+          child: Column(
+            children: [
 
-              alignment: Alignment.centerLeft,
+              /// PROFILE
+              const ProfileCard(),
 
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
+              const SizedBox(height: 20),
+
+              /// TÀI KHOẢN
+              SettingSection(
+                title: "Tài khoản",
+
+                children: [
+
+                  SettingTile(
+                    icon: Icons.person_outline,
+                    title: "Thông tin cá nhân",
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  SettingTile(
+                    icon: Icons.lock_outline,
+                    title: "Đổi mật khẩu",
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const ChangePasswordScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
 
-              child: const Text(
-                "MoneyNote",
+              const SizedBox(height: 20),
 
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+              /// TÀI CHÍNH
+              SettingSection(
+                title: "Quản lý tài chính",
+
+                children: [
+
+                  SettingTile(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: "Ngân sách",
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const BudgetScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  SettingTile(
+                    icon: Icons.sell_outlined,
+                    title: "Danh mục chi tiêu",
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const CategoryManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+              const SizedBox(height: 40),
 
-                child: Column(
-                  children: [
-
-                    /// PROFILE
-                    const ProfileCard(),
-
-                    const SizedBox(height: 24),
-
-                    /// ACCOUNT
-                    SettingSection(
-                      title: "Tài khoản",
-
-                      children: [
-                        SettingTile(
-                          icon: Icons.person_outline,
-                          title: "Thông tin cá nhân",
-                          onTap: () {},
-                        ),
-
-                        SettingTile(
-                          icon: Icons.shield_outlined,
-                          title: "Đổi mật khẩu",
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// FINANCE
-                    SettingSection(
-                      title: "Quản lý tài chính",
-
-                      children: [
-                        SettingTile(
-                          icon: Icons.account_balance_wallet_outlined,
-                          title: "Ngân sách",
-                          onTap: () {},
-                        ),
-
-                        SettingTile(
-                          icon: Icons.local_offer_outlined,
-                          title: "Danh mục chi tiêu",
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    /// LOGOUT
-                    LogoutButton(
-                      onTap: () {
-
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              const LogoutButton(),
+            ],
+          ),
         ),
       ),
     );

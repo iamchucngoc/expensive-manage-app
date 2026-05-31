@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 
 import 'core/routes/app_routes.dart';
 
+import 'features/category/data/services/category_service.dart';
+
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  
 
   runApp(const MyApp());
 }

@@ -1,55 +1,33 @@
-// lib/features/setting/presentation/widgets/logout_button.dart
-
 import 'package:flutter/material.dart';
 
 class LogoutButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const LogoutButton({
-    super.key,
-    required this.onTap,
-  });
+  const LogoutButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return SizedBox(
+      width: double.infinity,
 
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          vertical: 18,
-        ),
+      child: ElevatedButton.icon(
+        onPressed: () {
 
-        decoration: BoxDecoration(
-          color: const Color(0xfffdecec),
+          // TODO logout
+        },
 
-          borderRadius: BorderRadius.circular(16),
-        ),
+        icon: const Icon(Icons.logout),
 
-        child: const Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+        label: const Text("Đăng xuất"),
 
-          children: [
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              Colors.red.shade50,
 
-            Icon(
-              Icons.logout,
-              color: Colors.red,
-            ),
+          foregroundColor: Colors.red,
 
-            SizedBox(width: 8),
+          minimumSize:
+              const Size(double.infinity, 55),
 
-            Text(
-              "Đăng xuất",
-
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+          elevation: 0,
         ),
       ),
     );

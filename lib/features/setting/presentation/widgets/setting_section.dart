@@ -18,7 +18,8 @@ class SettingSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
 
-        borderRadius: BorderRadius.circular(20),
+        borderRadius:
+            BorderRadius.circular(16),
       ),
 
       child: Column(
@@ -28,18 +29,21 @@ class SettingSection extends StatelessWidget {
         children: [
 
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding:
+                const EdgeInsets.all(16),
 
             child: Text(
               title,
 
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
                 color: Colors.grey,
               ),
             ),
           ),
+
+          const Divider(height: 1),
 
           ...children,
         ],
