@@ -41,15 +41,6 @@ class CalendarWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header tháng
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              "${currentMonth.month.toString().padLeft(2, '0')}/${currentMonth.year}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-
           // Ngày trong tuần
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

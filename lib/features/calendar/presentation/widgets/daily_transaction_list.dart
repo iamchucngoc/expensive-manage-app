@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../transaction/data/models/transaction_model.dart';
 
-import '../../../../services/firestore_service.dart';
+import '../../../transaction/data/services/transaction_service.dart';
 
 import 'transaction_calendar_item.dart';
 
@@ -22,7 +22,7 @@ class DailyTransactionList
     return StreamBuilder<
         List<TransactionModel>>(
       stream:
-          FirestoreService()
+           TransactionService()
               .getTransactions(),
 
       builder: (context, snapshot) {

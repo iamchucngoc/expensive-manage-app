@@ -1,6 +1,6 @@
 // lib/features/calendar/presentation/screens/calendar_screen.dart
 import 'package:flutter/material.dart';
-import '../../../../services/firestore_service.dart';
+import '../../../transaction/data/services/transaction_service.dart';
 import '../../../transaction/data/models/transaction_model.dart';
 import '../widgets/calendar_widget.dart';
 import '../widgets/monthly_summary.dart';
@@ -46,7 +46,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         foregroundColor: Colors.black,
       ),
       body: StreamBuilder<List<TransactionModel>>(
-        stream: FirestoreService().getTransactions(),
+        stream: TransactionService().getTransactions(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import '../../../../services/firestore_service.dart';
+import '../../../transaction/data/services/transaction_service.dart';
 import '../../../transaction/data/models/transaction_model.dart';
 import '../widgets/category_report_item.dart';
 import 'category_detail_screen.dart';
@@ -92,7 +92,7 @@ class _ReportScreenState
             StreamBuilder<
                 List<TransactionModel>>(
           stream:
-              FirestoreService()
+              TransactionService()
                   .getTransactions(),
 
           builder: (

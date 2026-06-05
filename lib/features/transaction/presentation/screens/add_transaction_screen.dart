@@ -5,7 +5,7 @@ import '../../../category/data/models/category_model.dart';
 import '../../../category/data/services/category_service.dart';
 
 import '../../data/models/transaction_model.dart';
-import '../../../../services/firestore_service.dart';
+import '../../data/services/transaction_service.dart';
 
 import '../widgets/amount_display.dart';
 import '../widgets/amount_keyboard.dart';
@@ -24,8 +24,8 @@ class AddTransactionScreen extends StatefulWidget {
 
 class _AddTransactionScreenState
     extends State<AddTransactionScreen> {
-  final FirestoreService firestoreService =
-      FirestoreService();
+  final TransactionService transactionService =
+      TransactionService();
 
   final CategoryService categoryService =
       CategoryService();
@@ -77,7 +77,9 @@ class _AddTransactionScreenState
     );
   }
 
-  Future<void> saveTransaction() async {
+  Future<void> saveTransaction(
+    List<CategoryModel> categories,
+  ) async {
     if (amount == '0') {
       ScaffoldMessenger.of(context)
           .showSnackBar(
@@ -105,21 +107,45 @@ class _AddTransactionScreenState
     }
 
     try {
-      final transaction = TransactionModel(
+      final selectedCategoryModel =
+          categories.firstWhere(
+        (e) =>
+            e.name ==
+            selectedCategory,
+      );
+
+      final transaction =
+          TransactionModel(
         id: const Uuid().v4(),
+
         userId: 'demo-user',
-        amount: double.tryParse(amount) ?? 0,
+
+        amount:
+            double.tryParse(amount) ??
+                0,
+
         type: isExpense
             ? TransactionType.expense
             : TransactionType.income,
-        categoryId: selectedCategory,
-        categoryName: selectedCategory,
+
+        categoryId:
+            selectedCategoryModel.id,
+
+        categoryName:
+            selectedCategoryModel.name,
+
+        categoryIcon:
+            selectedCategoryModel.icon,
+
         note: noteController.text,
+
         date: selectedDate,
       );
-
-      await firestoreService
-          .addTransaction(transaction);
+      
+      await transactionService
+          .addTransaction(
+        transaction,
+      );
 
       if (!mounted) return;
 
@@ -165,6 +191,7 @@ class _AddTransactionScreenState
           child: Padding(
             padding:
                 const EdgeInsets.all(12),
+
             child: Column(
               children: [
                 Row(
@@ -276,51 +303,64 @@ class _AddTransactionScreenState
                               .name;
                     }
 
-                    return CategoryGrid(
-                      categories:
-                          categories,
-                      selectedCategory:
-                          selectedCategory,
-                      onSelect:
-                          (value) {
-                        setState(() {
-                          selectedCategory =
-                              value;
-                        });
-                      },
+                    return Column(
+                      children: [
+                        CategoryGrid(
+                          categories:
+                              categories,
+
+                          selectedCategory:
+                              selectedCategory,
+
+                          onSelect:
+                              (value) {
+                            setState(() {
+                              selectedCategory =
+                                  value;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(
+                          height: 20,
+                        ),
+
+                        SizedBox(
+                          width:
+                              double.infinity,
+
+                          height: 56,
+
+                          child:
+                              ElevatedButton(
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.red,
+                            ),
+
+                            onPressed:
+                                () =>
+                                    saveTransaction(
+                                      categories,
+                                    ),
+
+                            child:
+                                const Text(
+                              'Lưu giao dịch',
+                              style:
+                                  TextStyle(
+                                color:
+                                    Colors.white,
+                                fontSize:
+                                    18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
-                ),
-
-                const SizedBox(
-                  height: 20,
-                ),
-
-                SizedBox(
-                  width:
-                      double.infinity,
-                  height: 56,
-                  child:
-                      ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.red,
-                    ),
-                    onPressed:
-                        saveTransaction,
-                    child:
-                        const Text(
-                      'Lưu giao dịch',
-                      style:
-                          TextStyle(
-                        color:
-                            Colors.white,
-                        fontSize:
-                            18,
-                      ),
-                    ),
-                  ),
                 ),
 
                 const SizedBox(
