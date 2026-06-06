@@ -1,12 +1,9 @@
+// lib/features/calendar/presentation/widgets/monthly_summary.dart
 import 'package:flutter/material.dart';
-
 import '../../../transaction/data/models/transaction_model.dart';
 
-class MonthlySummary
-    extends StatelessWidget {
-
-  final List<TransactionModel>
-      transactions;
+class MonthlySummary extends StatelessWidget {
+  final List<TransactionModel> transactions;
 
   const MonthlySummary({
     super.key,
@@ -15,122 +12,83 @@ class MonthlySummary
 
   @override
   Widget build(BuildContext context) {
-
     double income = 0;
-
     double expense = 0;
 
-    for (final item
-        in transactions) {
-
-      if (item.type ==
-          TransactionType.income) {
-
+    for (final item in transactions) {
+      if (item.type == TransactionType.income) {
         income += item.amount;
-      }
-
-      else {
+      } else {
         expense += item.amount;
       }
     }
 
-    final total =
-        income - expense;
+    final total = income - expense;
 
     return Container(
-      margin:
-          const EdgeInsets.symmetric(
-        horizontal: 12,
-      ),
-
-      padding:
-          const EdgeInsets.symmetric(
-        vertical: 16,
-      ),
-
-      decoration: BoxDecoration(
-        color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(20),
-      ),
-
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-
-          Expanded(
-            child: Column(
-              children: [
-
-                const Text(
-                  'Thu nhập',
+          // Thu nhập
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Thu nhập',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${income.toInt()} đ',
+                style: const TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  '+${income.toInt()}đ',
-
-                  style:
-                      const TextStyle(
-                    color: Colors.blue,
-                    fontWeight:
-                        FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          Expanded(
-            child: Column(
-              children: [
-
-                const Text(
-                  'Chi tiêu',
+          // Chi tiêu
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Chi tiêu',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${expense.toInt()} đ',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  '-${expense.toInt()}đ',
-
-                  style:
-                      const TextStyle(
-                    color: Colors.red,
-                    fontWeight:
-                        FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          Expanded(
-            child: Column(
-              children: [
-
-                const Text(
-                  'Tổng',
+          // Tổng
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text(
+                'Tổng',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${total.toInt()} đ',
+                style: TextStyle(
+                  color: total < 0 ? Colors.red : Colors.blue, // Tổng âm thì đỏ, dương thì xanh
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  '${total >= 0 ? '+' : ''}${total.toInt()}đ',
-
-                  style:
-                      const TextStyle(
-                    color: Colors.blue,
-                    fontWeight:
-                        FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

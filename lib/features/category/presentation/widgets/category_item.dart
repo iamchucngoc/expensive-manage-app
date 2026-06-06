@@ -1,11 +1,15 @@
+// lib/features/category/presentation/widgets/category_item.dart
 import 'package:flutter/material.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import 'package:flutter_slidable/flutter_slidable.dart'; 
 
+import '../../data/category_colors.dart';
 import '../../data/models/category_model.dart';
 
 class CategoryItem extends StatelessWidget {
   final CategoryModel category;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback onDelete; 
 
   const CategoryItem({
     super.key,
@@ -16,51 +20,51 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin:
-          const EdgeInsets.only(
-        bottom: 12,
-      ),
-
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Text(
-            category.icon,
+    return Slidable(
+      key: ValueKey(category.id),
+      // ActionPane nằm ở bên phải (vuốt từ phải sang trái)
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.25, // Độ rộng của nút xóa
+        children: [
+          SlidableAction(
+            onPressed: (context) => onDelete(), // Gọi hàm xóa khi bấm
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete_outline,
+            label: 'Xóa',
           ),
-        ),
-
-        title: Text(
-          category.name,
-        ),
-
-        subtitle: Text(
-          category.type ==
-                  "income"
-              ? "Thu nhập"
-              : "Chi tiêu",
-        ),
-
-        trailing: PopupMenuButton(
-          itemBuilder: (_) => [
-            const PopupMenuItem(
-              value: "edit",
-              child: Text("Sửa"),
-            ),
-            const PopupMenuItem(
-              value: "delete",
-              child: Text("Xóa"),
-            ),
-          ],
-
-          onSelected: (value) {
-            if (value == "edit") {
-              onEdit();
-            }
-
-            if (value == "delete") {
-              onDelete();
-            }
-          },
+        ],
+      ),
+      child: InkWell(
+        onTap: onEdit, // Chạm vào cả dòng để sửa
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: hexToColor(category.colorHex).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Iconify(
+                  category.icon,
+                  color: hexToColor(category.colorHex),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  category.name, 
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+            ],
+          ),
         ),
       ),
     );

@@ -1,3 +1,5 @@
+// lib/widgets/custom_bottom_nav.dart
+
 import 'package:flutter/material.dart';
 
 class CustomBottomNav extends StatelessWidget {
@@ -12,33 +14,33 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
+    const primaryPink = Color(0xFFFF6492); // Màu hồng chủ đạo
 
-      type: BottomNavigationBarType.fixed,
-
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.edit_note),
-          label: 'Nhập',
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: 'Lịch',
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.pie_chart),
-          label: 'Thống kê',
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Cài đặt',
-        ),
-      ],
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        backgroundColor: Colors.white, // Nền trắng chuẩn mực
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: primaryPink, // Màu hồng đậm khi chọn
+        unselectedItemColor: Colors.grey.shade500, // Màu xám đậm để dễ nhìn hơn xám nhạt
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Nhập'),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Lịch'),
+          BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: 'Thống kê'),
+          BottomNavigationBarItem(icon: Icon(Icons.savings), label: 'Ngân sách'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
+        ],
+      ),
     );
   }
 }

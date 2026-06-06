@@ -1,35 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../models/transaction_model.dart';
 
 class TransactionService {
-  final FirebaseFirestore firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final String collection = 'transactions';
 
-  final String collection =
-      'transactions';
-
-  Stream<List<TransactionModel>>
-      getTransactions() {
+  //  Bắt buộc truyền currentUserId vào để lọc dữ liệu
+  Stream<List<TransactionModel>> getTransactions(String currentUserId) {
     return firestore
         .collection(collection)
-        .orderBy(
-          'date',
-          descending: true,
-        )
+        .where('userId', isEqualTo: currentUserId) // Lọc riêng giao dịch của user này
+        .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        return TransactionModel.fromMap(
-          doc.data(),
-        );
+        return TransactionModel.fromMap(doc.data());
       }).toList();
     });
   }
 
-  Future<void> addTransaction(
-    TransactionModel transaction,
-  ) async {
+  Future<void> addTransaction(TransactionModel transaction) async {
     await firestore
         .collection(collection)
         .doc(transaction.id)
@@ -38,9 +28,7 @@ class TransactionService {
         );
   }
 
-  Future<void> updateTransaction(
-    TransactionModel transaction,
-  ) async {
+  Future<void> updateTransaction(TransactionModel transaction) async {
     await firestore
         .collection(collection)
         .doc(transaction.id)
@@ -49,9 +37,7 @@ class TransactionService {
         );
   }
 
-  Future<void> deleteTransaction(
-    String id,
-  ) async {
+  Future<void> deleteTransaction(String id) async {
     await firestore
         .collection(collection)
         .doc(id)

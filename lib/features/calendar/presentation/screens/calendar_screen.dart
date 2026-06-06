@@ -1,4 +1,6 @@
 // lib/features/calendar/presentation/screens/calendar_screen.dart
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import '../../../transaction/data/services/transaction_service.dart';
 import '../../../transaction/data/models/transaction_model.dart';
@@ -15,6 +17,7 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _currentMonth = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
 
   void _goToPreviousMonth() {
     setState(() {
@@ -28,7 +31,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  // Lọc giao dịch theo tháng hiện tại
   List<TransactionModel> _getTransactionsByMonth(List<TransactionModel> allTransactions) {
     return allTransactions.where((t) {
       return t.date.year == _currentMonth.year && t.date.month == _currentMonth.month;
@@ -37,83 +39,77 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final transactionService = Provider.of<TransactionService>(context, listen: false);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text("Lịch"),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: StreamBuilder<List<TransactionModel>>(
-        stream: TransactionService().getTransactions(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: StreamBuilder<List<TransactionModel>>(
+          stream: transactionService.getTransactions(
+            FirebaseAuth.instance.currentUser?.uid ?? '',
+          ),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
+            }
 
-          final allTransactions = snapshot.data!;
-          final monthTransactions = _getTransactionsByMonth(allTransactions);
+            final allTransactions = snapshot.data ?? [];
+            final monthTransactions = _getTransactionsByMonth(allTransactions);
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                // Header chuyển tháng
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: _goToPreviousMonth,
-                      ),
-                      Text(
-                        "${_currentMonth.month.toString().padLeft(2, '0')}/${_currentMonth.year}",
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: _goToNextMonth,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Lịch
-                CalendarWidget(
-                  transactions: allTransactions, // Truyền tất cả để highlight ngày
-                  currentMonth: _currentMonth,
-                ),
-
-                // Tóm tắt tháng (theo tháng hiện tại)
-                MonthlySummary(transactions: monthTransactions),
-
-                const SizedBox(height: 8),
-
-                // Danh sách giao dịch của tháng
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Giao dịch tháng ${_currentMonth.month}/${_currentMonth.year}",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Header chuyển tháng
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _goToPreviousMonth,
+                        ),
+                        Text(
+                          "${_currentMonth.month.toString().padLeft(2, '0')}/${_currentMonth.year}",
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: _goToNextMonth,
+                        ),
+                      ],
                     ),
                   ),
-                ),
 
-                SizedBox(
-                  height: 420,
-                  child: GroupedTransactionList(
+                  // Lịch nguyên khối
+                  CalendarWidget(
+                    transactions: monthTransactions,
+                    currentMonth: _currentMonth,
+                    onDateSelected: (date) {
+                      setState(() {
+                        _selectedDate = date;
+                      });
+                    },
+                  ),
+
+          
+                  MonthlySummary(transactions: monthTransactions),
+
+              
+                  GroupedTransactionList(
                     transactions: monthTransactions,
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  
+                  const SizedBox(height: 40),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

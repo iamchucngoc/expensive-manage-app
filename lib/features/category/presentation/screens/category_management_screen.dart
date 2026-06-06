@@ -1,4 +1,7 @@
+// lib/features/category/presentation/screens/category_management_screen.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
 import '../../data/models/category_model.dart';
 import '../../data/services/category_service.dart';
@@ -9,157 +12,125 @@ class CategoryManagementScreen extends StatefulWidget {
   const CategoryManagementScreen({super.key});
 
   @override
-  State<CategoryManagementScreen> createState() =>
-      _CategoryManagementScreenState();
+  State<CategoryManagementScreen> createState() => _CategoryManagementScreenState();
 }
 
-class _CategoryManagementScreenState
-    extends State<CategoryManagementScreen> {
+class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   bool showExpense = true;
+  final Color primaryPink = const Color(0xFFFF6492);
 
   @override
   Widget build(BuildContext context) {
+    // Kéo CategoryService từ Provider (Trạm tổng) xuống
+    final categoryService = Provider.of<CategoryService>(context, listen: false);
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Quản lý danh mục"),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        // Nút Toggle Thu/Chi đưa lên thẳng AppBar giống thiết kế Figma
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => setState(() => showExpense = true),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                decoration: BoxDecoration(
+                  color: showExpense ? primaryPink : Colors.grey.shade200,
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(8)),
+                ),
+                child: Text('Chi tiêu', style: TextStyle(color: showExpense ? Colors.white : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => setState(() => showExpense = false),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                decoration: BoxDecoration(
+                  color: !showExpense ? Colors.grey.shade300 : Colors.grey.shade200,
+                  borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)),
+                ),
+                child: Text('Thu nhập', style: TextStyle(color: !showExpense ? Colors.black87 : Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        // Viền kẻ mỏng dưới AppBar
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: Colors.grey.shade200, height: 1.0),
+        ),
       ),
-
-      floatingActionButton:
-          FloatingActionButton.extended(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) =>
-                const AddCategoryBottomSheet(),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text("Thêm"),
-      ),
-
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          showExpense
-                              ? Colors.red
-                              : Colors.grey.shade300,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        showExpense = true;
-                      });
-                    },
-                    child: const Text(
-                      "Chi tiêu",
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          !showExpense
-                              ? Colors.green
-                              : Colors.grey.shade300,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        showExpense = false;
-                      });
-                    },
-                    child: const Text(
-                      "Thu nhập",
-                    ),
-                  ),
-                ),
-              ],
+          // Nút "Thêm danh mục" dạng dải ngang màu hồng nhạt
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent, // Để lộ nền trắng bo góc của BottomSheet
+                builder: (_) => const AddCategoryBottomSheet(),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              color: primaryPink.withOpacity(0.1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Thêm danh mục", style: TextStyle(color: primaryPink, fontSize: 16, fontWeight: FontWeight.w600)),
+                  Icon(Icons.arrow_forward_ios, color: primaryPink, size: 16),
+                ],
+              ),
             ),
           ),
-
+          
+          // Danh sách các danh mục
           Expanded(
-            child: StreamBuilder<
-                List<CategoryModel>>(
-              stream:
-                  CategoryService()
-                      .getCategories(),
-              builder: (
-                context,
-                snapshot,
-              ) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child:
-                        CircularProgressIndicator(),
-                  );
+            child: StreamBuilder<List<CategoryModel>>(
+              stream: categoryService.getCategories(userId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text("Chưa có danh mục", style: TextStyle(color: Colors.grey)));
                 }
 
-                final categories =
-                    snapshot.data!
-                        .where(
-                          (e) =>
-                              e.type ==
-                              (showExpense
-                                  ? "expense"
-                                  : "income"),
-                        )
-                        .toList();
+                final categories = snapshot.data!.where((e) => e.type == (showExpense ? "expense" : "income")).toList();
 
                 if (categories.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "Chưa có danh mục",
-                    ),
-                  );
+                   return const Center(child: Text("Chưa có danh mục", style: TextStyle(color: Colors.grey)));
                 }
 
-                return ListView.builder(
-                  padding:
-                      const EdgeInsets.all(
-                    16,
-                  ),
-                  itemCount:
-                      categories.length,
-                  itemBuilder:
-                      (context, index) {
-                    final category =
-                        categories[index];
-
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  itemCount: categories.length,
+                  // Tạo đường kẻ mỏng phân cách giữa các item giống Figma
+                  separatorBuilder: (context, index) => Divider(color: Colors.grey.shade200, height: 1),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
                     return CategoryItem(
                       category: category,
-
                       onEdit: () {
                         showModalBottomSheet(
-                          context:
-                              context,
-                          isScrollControlled:
-                              true,
-                          builder: (_) =>
-                              AddCategoryBottomSheet(
-                            category:
-                                category,
-                          ),
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => AddCategoryBottomSheet(category: category),
                         );
                       },
-
-                      onDelete: () async {
-                        await CategoryService()
-                            .deleteCategory(
-                          category.id,
-                        );
-                      },
+                      onDelete: () => categoryService.deleteCategory(category.id),
                     );
                   },
                 );

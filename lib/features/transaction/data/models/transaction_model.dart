@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum TransactionType { income, expense }
 
 class TransactionModel {
@@ -38,14 +40,13 @@ class TransactionModel {
       'categoryName': categoryName,
       'categoryIcon': categoryIcon,
       'note': note,
-      'date': date.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
+      // Lưu dưới dạng Timestamp của Firestore
+      'date': Timestamp.fromDate(date),
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
-  factory TransactionModel.fromMap(
-    Map<String, dynamic> map,
-  ) {
+  factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
       id: map['id'],
       userId: map['userId'],
@@ -55,15 +56,11 @@ class TransactionModel {
       ),
       categoryId: map['categoryId'],
       categoryName: map['categoryName'],
-      categoryIcon:
-          map['categoryIcon'] ?? '💸',
+      categoryIcon: map['categoryIcon'] ?? '💸',
       note: map['note'],
-      date: DateTime.parse(
-        map['date'],
-      ),
-      createdAt: DateTime.parse(
-        map['createdAt'],
-      ),
+      // Parse từ Timestamp sang DateTime
+      date: (map['date'] as Timestamp).toDate(),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
 }

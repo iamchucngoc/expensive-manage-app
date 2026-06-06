@@ -1,14 +1,10 @@
+// lib/features/calendar/presentation/widgets/grouped_transaction_list.dart
 import 'package:flutter/material.dart';
-
 import '../../../transaction/data/models/transaction_model.dart';
-
 import 'transaction_calendar_item.dart';
 
-class GroupedTransactionList
-    extends StatelessWidget {
-
-  final List<TransactionModel>
-      transactions;
+class GroupedTransactionList extends StatelessWidget {
+  final List<TransactionModel> transactions;
 
   const GroupedTransactionList({
     super.key,
@@ -17,73 +13,60 @@ class GroupedTransactionList
 
   @override
   Widget build(BuildContext context) {
+    // 1. Xếp ngày tăng dần để hiển thị từ đầu tháng đến cuối tháng
+    final sortedTransactions = List<TransactionModel>.from(transactions)
+      ..sort((a, b) => a.date.compareTo(b.date));
 
-    final grouped =
-        <String,
-            List<TransactionModel>>{};
-
-    for (final transaction
-        in transactions) {
-
-      final key =
-          '${transaction.date.day}/${transaction.date.month}/${transaction.date.year}';
-
-      if (!grouped.containsKey(key)) {
-        grouped[key] = [];
+    // 2. Gom nhóm giao dịch theo từng ngày
+    Map<String, List<TransactionModel>> grouped = {};
+    for (var t in sortedTransactions) {
+      String dateKey = "${t.date.day}/${t.date.month}/${t.date.year}";
+      if (!grouped.containsKey(dateKey)) {
+        grouped[dateKey] = [];
       }
-
-      grouped[key]!.add(transaction);
+      grouped[dateKey]!.add(t);
     }
 
-    final keys =
-        grouped.keys.toList();
+    if (grouped.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: Text("Không có giao dịch trong tháng này")),
+      );
+    }
 
+    // 3. Render danh sách
     return ListView.builder(
-      padding:
-          const EdgeInsets.all(12),
-
-      itemCount: keys.length,
-
+      shrinkWrap: true, // Bắt buộc để cuộn mượt bên trong SingleChildScrollView
+      physics: const NeverScrollableScrollPhysics(), 
+      padding: EdgeInsets.zero,
+      itemCount: grouped.length,
       itemBuilder: (context, index) {
+        String dateKey = grouped.keys.elementAt(index);
+        List<TransactionModel> dayTransactions = grouped[dateKey]!;
 
-        final key = keys[index];
-
-        final items =
-            grouped[key]!;
+        double dailyTotal = dayTransactions.fold(0, (sum, item) {
+          return item.type == TransactionType.income ? sum + item.amount : sum - item.amount;
+        });
 
         return Column(
-          crossAxisAlignment:
-              CrossAxisAlignment
-                  .start,
-
           children: [
-
-            Padding(
-              padding:
-                  const EdgeInsets.only(
-                bottom: 10,
-              ),
-
-              child: Text(
-                key,
-
-                style:
-                    const TextStyle(
-                  fontSize: 18,
-                  fontWeight:
-                      FontWeight.bold,
-                ),
+            // Header ngày (Dải màu tím nhạt)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: const Color(0xFFCDB4DB), // Nền tím đồng bộ với lịch
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(dateKey, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  Text(
+                    '${dailyTotal.toInt()} đ',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ],
               ),
             ),
-
-            ...items.map(
-              (e) =>
-                  TransactionCalendarItem(
-                transaction: e,
-              ),
-            ),
-
-            const SizedBox(height: 20),
+            // Các giao dịch trong ngày
+            ...dayTransactions.map((t) => TransactionCalendarItem(transaction: t)).toList(),
           ],
         );
       },

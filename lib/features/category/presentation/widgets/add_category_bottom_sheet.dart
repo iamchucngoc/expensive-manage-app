@@ -1,343 +1,241 @@
-// lib/features/category/presentation/widgets/add_category_bottom_sheet.dart
-
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../data/category_icons.dart';
+import '../../data/category_colors.dart';
 import '../../data/models/category_model.dart';
 import '../../data/services/category_service.dart';
 
 class AddCategoryBottomSheet extends StatefulWidget {
   final CategoryModel? category;
 
-  const AddCategoryBottomSheet({
-    super.key,
-    this.category,
-  });
+  const AddCategoryBottomSheet({super.key, this.category});
 
   @override
-  State<AddCategoryBottomSheet> createState() =>
-      _AddCategoryBottomSheetState();
+  State<AddCategoryBottomSheet> createState() => _AddCategoryBottomSheetState();
 }
 
-class _AddCategoryBottomSheetState
-    extends State<AddCategoryBottomSheet> {
-  final TextEditingController controller =
-      TextEditingController();
+class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
+  final TextEditingController controller = TextEditingController();
 
-  String selectedIcon = "🍜";
+  late String selectedIcon;
+  late Color selectedColor;
+  String selectedType =
+      "expense"; 
 
-  String selectedType = "expense";
+  final Color primaryPink = const Color(0xFFFF6492);
 
   @override
   void initState() {
     super.initState();
+    selectedIcon = categoryIcons[0];
+    selectedColor = categoryColors[0];
 
     if (widget.category != null) {
       controller.text = widget.category!.name;
-
-      selectedIcon =
-          widget.category!.icon;
-
-      selectedType =
-          widget.category!.type;
+      selectedIcon = widget.category!.icon;
+      selectedType = widget.category!.type;
+      selectedColor = hexToColor(widget.category!.colorHex);
     }
   }
 
   Future<void> save() async {
-    if (controller.text.trim().isEmpty) {
-      return;
-    }
+    if (controller.text.trim().isEmpty) return;
 
     final category = CategoryModel(
-      id: widget.category?.id ??
-          const Uuid().v4(),
-
+      id: widget.category?.id ?? const Uuid().v4(),
+      userId: FirebaseAuth.instance.currentUser?.uid ?? '',
       name: controller.text.trim(),
-
       icon: selectedIcon,
-
       type: selectedType,
+      colorHex: colorToHex(selectedColor),
     );
 
     if (widget.category == null) {
-      await CategoryService()
-          .addCategory(category);
+      await CategoryService().addCategory(category);
     } else {
-      await CategoryService()
-          .updateCategory(category);
+      await CategoryService().updateCategory(category);
     }
 
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding:
-            const EdgeInsets.all(20),
-
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-
-            children: [
-              Row(
-                children: [
-                  Text(
-                    widget.category == null
-                        ? "Thêm danh mục"
-                        : "Sửa danh mục",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(
-                          context);
-                    },
-                    icon: const Icon(
-                      Icons.close,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              TextField(
-                controller: controller,
-                decoration:
-                    const InputDecoration(
-                  labelText:
-                      "Tên danh mục",
-                  border:
-                      OutlineInputBorder(),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                "Loại danh mục",
-                style: TextStyle(
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              DropdownButtonFormField<
-                  String>(
-                value: selectedType,
-
-                decoration:
-                    const InputDecoration(
-                  border:
-                      OutlineInputBorder(),
-                ),
-
-                items: const [
-                  DropdownMenuItem(
-                    value: "expense",
-                    child: Text(
-                        "Chi tiêu"),
-                  ),
-                  DropdownMenuItem(
-                    value: "income",
-                    child: Text(
-                        "Thu nhập"),
-                  ),
-                ],
-
-                onChanged: (value) {
-                  setState(() {
-                    selectedType =
-                        value!;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                "Biểu tượng",
-                style: TextStyle(
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              GridView.builder(
-                shrinkWrap: true,
-
-                physics:
-                    const NeverScrollableScrollPhysics(),
-
-                itemCount:
-                    categoryIcons.length,
-
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 6,
-                ),
-
-                itemBuilder:
-                    (context, index) {
-                  final icon =
-                      categoryIcons[index];
-
-                  final selected =
-                      icon ==
-                          selectedIcon;
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedIcon =
-                            icon;
-                      });
-                    },
-
-                    child: Container(
-                      margin:
-                          const EdgeInsets.all(
-                        4,
-                      ),
-
-                      decoration:
-                          BoxDecoration(
-                        color: selected
-                            ? Colors.orange
-                                .withOpacity(
-                                    0.15)
-                            : null,
-
-                        border:
-                            Border.all(
-                          color: selected
-                              ? Colors.orange
-                              : Colors
-                                  .transparent,
-                          width: 2,
-                        ),
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          10,
-                        ),
-                      ),
-
-                      child: Center(
-                        child: Text(
-                          icon,
-                          style:
-                              const TextStyle(
-                            fontSize: 24,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              Container(
-                padding:
-                    const EdgeInsets.all(
-                  16,
-                ),
-
-                decoration:
-                    BoxDecoration(
-                  color:
-                      Colors.grey.shade100,
-
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
-                ),
-
-                child: Row(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          widget.category == null ? "Tạo mới danh mục" : "Sửa danh mục",
+          style: TextStyle(
+              color: primaryPink, fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      selectedIcon,
-                      style:
-                          const TextStyle(
-                        fontSize: 28,
+                    // Tên danh mục
+                    Container(
+                      decoration: BoxDecoration(
+                          border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade300))),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                              width: 50,
+                              child: Text('Tên',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold))),
+                          Expanded(
+                            child: TextField(
+                              controller: controller,
+                              decoration: const InputDecoration(
+                                hintText: 'Vui lòng nhập vào tên danh mục',
+                                hintStyle:
+                                    TextStyle(color: Colors.grey, fontSize: 14),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 24),
 
-                    const SizedBox(
-                      width: 12,
-                    ),
-
-                    Expanded(
-                      child: Text(
-                        controller.text
-                                .trim()
-                                .isEmpty
-                            ? "Tên danh mục"
-                            : controller
-                                .text,
-                        style:
-                            const TextStyle(
-                          fontSize: 16,
-                          fontWeight:
-                              FontWeight.w600,
+                    // Biểu tượng
+                    const Text("Biểu tượng",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 200, // Chiều cao cố định có thanh cuộn như Figma
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: categoryIcons.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
                         ),
-                      ),
-                    ),
+                        itemBuilder: (context, index) {
+                          final icon = categoryIcons[index];
+                          final isSelected = icon == selectedIcon;
 
-                    Chip(
-                      label: Text(
-                        selectedType ==
-                                "expense"
-                            ? "Chi"
-                            : "Thu",
+                          return GestureDetector(
+                            onTap: () => setState(() => selectedIcon = icon),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: isSelected
+                                        ? primaryPink
+                                        : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Iconify(
+                                  icon,
+                                  color:
+                                      isSelected ? primaryPink : Colors.black87,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Màu sắc
+                    const Text("Màu sắc",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 160,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: categoryColors.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.5, // Hình chữ nhật thay vì vuông
+                        ),
+                        itemBuilder: (context, index) {
+                          final color = categoryColors[index];
+                          final isSelected = color == selectedColor;
+
+                          return GestureDetector(
+                            onTap: () => setState(() => selectedColor = color),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(4),
+                                border: isSelected
+                                    ? Border.all(color: Colors.black, width: 2)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width:
-                    double.infinity,
-
-                height: 52,
-
+            ),
+            // Nút Lưu
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
-                  onPressed: save,
-
-                  child: Text(
-                    widget.category ==
-                            null
-                        ? "Thêm danh mục"
-                        : "Cập nhật danh mục",
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryPink,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25)),
                   ),
+                  onPressed: save,
+                  child: const Text('Lưu',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
