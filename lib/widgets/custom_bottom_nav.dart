@@ -14,7 +14,7 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryPink = Color(0xFFFF6492); // Màu hồng chủ đạo
+    const primaryPink = Color(0xFFFF6492);
 
     return Container(
       decoration: const BoxDecoration(
@@ -26,10 +26,10 @@ class CustomBottomNav extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
-        backgroundColor: Colors.white, // Nền trắng chuẩn mực
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: primaryPink, // Màu hồng đậm khi chọn
-        unselectedItemColor: Colors.grey.shade500, // Màu xám đậm để dễ nhìn hơn xám nhạt
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey.shade500, 
         selectedFontSize: 12,
         unselectedFontSize: 12,
         elevation: 0,

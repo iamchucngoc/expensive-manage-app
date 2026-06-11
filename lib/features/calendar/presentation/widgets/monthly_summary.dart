@@ -10,6 +10,11 @@ class MonthlySummary extends StatelessWidget {
     required this.transactions,
   });
 
+  String _formatMoney(double value) {
+    if (value == 0) return "0";
+    return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
   @override
   Widget build(BuildContext context) {
     double income = 0;
@@ -27,67 +32,32 @@ class MonthlySummary extends StatelessWidget {
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Thu nhập
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Thu nhập',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${income.toInt()} đ',
-                style: const TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              const Text('Thu nhập', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('${_formatMoney(income)} đ', style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
-
-          // Chi tiêu
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                'Chi tiêu',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${expense.toInt()} đ',
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              const Text('Chi tiêu', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('${_formatMoney(expense)} đ', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
-
-          // Tổng
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                'Tổng',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${total.toInt()} đ',
-                style: TextStyle(
-                  color: total < 0 ? Colors.red : Colors.blue, // Tổng âm thì đỏ, dương thì xanh
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              const Text('Tổng', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('${_formatMoney(total)} đ', style: TextStyle(color: total < 0 ? Colors.red : Colors.blue, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
         ],

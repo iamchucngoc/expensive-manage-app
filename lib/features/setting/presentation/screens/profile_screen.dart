@@ -1,7 +1,7 @@
 // lib/features/setting/presentation/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import '../../data/services/setting_service.dart';
-import 'change_password_screen.dart'; // Import giao diện Dialog đổi mật khẩu
+import 'change_password_screen.dart'; 
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final SettingService settingService = SettingService();
     final String userEmail = settingService.getCurrentUserEmail() ?? "Chưa đăng nhập";
-    final Color primaryPink = const Color(0xFFFF6492);
+    final Color primaryPink = Theme.of(context).primaryColor;
 
     return Scaffold(
       backgroundColor: Colors.white,

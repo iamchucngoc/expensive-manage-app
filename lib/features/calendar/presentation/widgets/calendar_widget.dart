@@ -14,16 +14,17 @@ class CalendarWidget extends StatelessWidget {
     required this.onDateSelected,
   });
 
+  String _formatMoney(double value) {
+    if (value == 0) return "0";
+    return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
   double _getIncome(DateTime day) {
-    return transactions
-        .where((t) => _isSameDay(t.date, day) && t.type == TransactionType.income)
-        .fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.where((t) => _isSameDay(t.date, day) && t.type == TransactionType.income).fold(0.0, (sum, t) => sum + t.amount);
   }
 
   double _getExpense(DateTime day) {
-    return transactions
-        .where((t) => _isSameDay(t.date, day) && t.type == TransactionType.expense)
-        .fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.where((t) => _isSameDay(t.date, day) && t.type == TransactionType.expense).fold(0.0, (sum, t) => sum + t.amount);
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -32,10 +33,9 @@ class CalendarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Logic tính ngày của tháng hiện tại và các ngày thừa của tháng trước/sau
     final daysInMonth = DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
     final firstDayOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
-    final firstWeekday = firstDayOfMonth.weekday; // 1 = T2, 7 = CN
+    final firstWeekday = firstDayOfMonth.weekday; 
 
     final prevMonthDaysToShow = firstWeekday - 1;
     final prevMonth = DateTime(currentMonth.year, currentMonth.month - 1);
@@ -43,42 +43,31 @@ class CalendarWidget extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300, width: 1), // Viền khối lịch
-      ),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300, width: 1)),
       child: Column(
         children: [
-          // Header: T2 -> CN
           Container(
-            color: const Color(0xFFCDB4DB), // Nền tím nhạt theo UI
+            color: const Color(0xFFCDB4DB), 
             child: Row(
               children: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
                   .map((e) => Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            e,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13),
-                          ),
+                          child: Text(e, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         ),
                       ))
                   .toList(),
             ),
           ),
-
-          // Lưới lịch 0 khoảng cách
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero, 
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              childAspectRatio: 0.85, // Kéo dài ô để chứa chữ
-              mainAxisSpacing: 0, // Xóa khe hở
-              crossAxisSpacing: 0, // Xóa khe hở
+              childAspectRatio: 0.85, 
+              mainAxisSpacing: 0, 
+              crossAxisSpacing: 0, 
             ),
             itemCount: 42,
             itemBuilder: (context, index) {
@@ -86,19 +75,13 @@ class CalendarWidget extends StatelessWidget {
               bool isCurrentMonth = true;
 
               if (index < prevMonthDaysToShow) {
-                // Ngày của tháng trước
                 isCurrentMonth = false;
-                date = DateTime(prevMonth.year, prevMonth.month,
-                    daysInPrevMonth - prevMonthDaysToShow + index + 1);
+                date = DateTime(prevMonth.year, prevMonth.month, daysInPrevMonth - prevMonthDaysToShow + index + 1);
               } else if (index >= prevMonthDaysToShow + daysInMonth) {
-                // Ngày của tháng sau
                 isCurrentMonth = false;
-                date = DateTime(currentMonth.year, currentMonth.month + 1,
-                    index - (prevMonthDaysToShow + daysInMonth) + 1);
+                date = DateTime(currentMonth.year, currentMonth.month + 1, index - (prevMonthDaysToShow + daysInMonth) + 1);
               } else {
-                // Ngày trong tháng
-                date = DateTime(currentMonth.year, currentMonth.month,
-                    index - prevMonthDaysToShow + 1);
+                date = DateTime(currentMonth.year, currentMonth.month, index - prevMonthDaysToShow + 1);
               }
 
               final income = _getIncome(date);
@@ -108,17 +91,17 @@ class CalendarWidget extends StatelessWidget {
                 onTap: () => onDateSelected(date),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isCurrentMonth ? Colors.white : const Color(0xFFFDE8EB), // Hồng nhạt cho ngày ngoài tháng
-                    border: Border.all(color: Colors.grey.shade300, width: 0.5), // Viền mảnh từng ô
+                    color: isCurrentMonth ? Colors.white : const Color(0xFFFDE8EB),
+                    border: Border.all(color: Colors.grey.shade300, width: 0.5), 
                   ),
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(2),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // Đưa số ngày sang trái
+                    crossAxisAlignment: CrossAxisAlignment.start, 
                     children: [
                       Text(
                         '${date.day}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: isCurrentMonth ? Colors.black : Colors.black54,
                           fontWeight: isCurrentMonth ? FontWeight.w500 : FontWeight.normal,
                         ),
@@ -127,14 +110,18 @@ class CalendarWidget extends StatelessWidget {
                       if (income > 0)
                         Align(
                           alignment: Alignment.center,
-                          child: Text('${income.toInt()}',
-                              style: const TextStyle(fontSize: 10, color: Colors.blue)),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(_formatMoney(income), style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                       if (expense > 0)
                         Align(
                           alignment: Alignment.center,
-                          child: Text('${expense.toInt()}',
-                              style: const TextStyle(fontSize: 10, color: Colors.red)),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(_formatMoney(expense), style: const TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                     ],
                   ),

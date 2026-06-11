@@ -7,7 +7,6 @@ const List<Color> categoryColors = [
   Color(0xffE17055), Color(0xff00B894), Color(0xff00CEC9), Color(0xff0984E3),
 ];
 
-// Hàm chuyển Color thành chuỗi Hex để lưu lên database
 String colorToHex(Color color) => '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
-// Hàm đọc chuỗi Hex thành Color
+
 Color hexToColor(String hex) => Color(int.parse(hex.replaceFirst('#', '0xFF')));

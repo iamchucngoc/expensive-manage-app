@@ -17,11 +17,11 @@ class CategoryManagementScreen extends StatefulWidget {
 
 class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   bool showExpense = true;
-  final Color primaryPink = const Color(0xFFFF6492);
+ 
 
   @override
   Widget build(BuildContext context) {
-    // Kéo CategoryService từ Provider (Trạm tổng) xuống
+    final Color primaryPink = Theme.of(context).primaryColor;
     final categoryService = Provider.of<CategoryService>(context, listen: false);
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -34,7 +34,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        // Nút Toggle Thu/Chi đưa lên thẳng AppBar giống thiết kế Figma
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -63,7 +62,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
           ],
         ),
         centerTitle: true,
-        // Viền kẻ mỏng dưới AppBar
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(color: Colors.grey.shade200, height: 1.0),
@@ -71,14 +69,15 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       ),
       body: Column(
         children: [
-          // Nút "Thêm danh mục" dạng dải ngang màu hồng nhạt
           GestureDetector(
             onTap: () {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                backgroundColor: Colors.transparent, // Để lộ nền trắng bo góc của BottomSheet
-                builder: (_) => const AddCategoryBottomSheet(),
+                backgroundColor: Colors.transparent,
+                builder: (_) => AddCategoryBottomSheet(
+                  initialType: showExpense ? "expense" : "income", // Truyền loại vào đây
+                ),
               );
             },
             child: Container(
@@ -95,7 +94,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
             ),
           ),
           
-          // Danh sách các danh mục
           Expanded(
             child: StreamBuilder<List<CategoryModel>>(
               stream: categoryService.getCategories(userId),
@@ -116,7 +114,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   itemCount: categories.length,
-                  // Tạo đường kẻ mỏng phân cách giữa các item giống Figma
                   separatorBuilder: (context, index) => Divider(color: Colors.grey.shade200, height: 1),
                   itemBuilder: (context, index) {
                     final category = categories[index];
@@ -127,7 +124,10 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (_) => AddCategoryBottomSheet(category: category),
+                          builder: (_) => AddCategoryBottomSheet(
+                            category: category,
+                            initialType: showExpense ? "expense" : "income", // Truyền loại vào đây
+                          ),
                         );
                       },
                       onDelete: () => categoryService.deleteCategory(category.id),

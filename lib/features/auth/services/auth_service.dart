@@ -1,3 +1,4 @@
+// lib/features/auth/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
@@ -21,6 +22,14 @@ class AuthService {
     return await _auth.signOut();
   }
 
-  // Ghi chú: Đăng nhập Google sẽ cần cài thêm package google_sign_in. 
-  // Tạm thời chúng ta hoàn thiện luồng Email/Pass trước.
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw 'Không tìm thấy tài khoản với email này.';
+      }
+      throw 'Có lỗi xảy ra: ${e.message}';
+    }
+  }
 }

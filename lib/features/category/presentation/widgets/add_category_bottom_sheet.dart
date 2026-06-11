@@ -1,3 +1,4 @@
+// lib/features/category/presentation/widgets/add_category_bottom_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
@@ -10,8 +11,13 @@ import '../../data/services/category_service.dart';
 
 class AddCategoryBottomSheet extends StatefulWidget {
   final CategoryModel? category;
+  final String initialType; // Nhận biết tab Thu hay Chi
 
-  const AddCategoryBottomSheet({super.key, this.category});
+  const AddCategoryBottomSheet({
+    super.key, 
+    this.category, 
+    this.initialType = "expense",
+  });
 
   @override
   State<AddCategoryBottomSheet> createState() => _AddCategoryBottomSheetState();
@@ -22,21 +28,21 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
 
   late String selectedIcon;
   late Color selectedColor;
-  String selectedType =
-      "expense"; 
+  late String selectedType;
 
-  final Color primaryPink = const Color(0xFFFF6492);
 
   @override
   void initState() {
     super.initState();
     selectedIcon = categoryIcons[0];
     selectedColor = categoryColors[0];
+    
+    // Lấy type từ danh mục cũ (nếu đang sửa), nếu tạo mới thì lấy initialType
+    selectedType = widget.category?.type ?? widget.initialType;
 
     if (widget.category != null) {
       controller.text = widget.category!.name;
       selectedIcon = widget.category!.icon;
-      selectedType = widget.category!.type;
       selectedColor = hexToColor(widget.category!.colorHex);
     }
   }
@@ -64,6 +70,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryPink = Theme.of(context).primaryColor;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -125,7 +132,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 12),
                     Container(
-                      height: 200, // Chiều cao cố định có thanh cuộn như Figma
+                      height: 200,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(8),
@@ -188,7 +195,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                           crossAxisCount: 5,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 1.5, // Hình chữ nhật thay vì vuông
+                          childAspectRatio: 1.5,
                         ),
                         itemBuilder: (context, index) {
                           final color = categoryColors[index];

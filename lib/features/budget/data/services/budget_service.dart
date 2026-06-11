@@ -1,38 +1,24 @@
 // lib/features/budget/data/services/budget_service.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../models/budget_model.dart';
 
 class BudgetService {
-  final FirebaseFirestore firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  final String collection = "budgets";
-
-  Stream<List<BudgetModel>>
-      getBudgets() {
-    return firestore
-        .collection(collection)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map(
-            (doc) =>
-                BudgetModel.fromMap(
-              doc.data(),
-            ),
-          )
-          .toList();
+  // Lấy ngân sách theo tháng/năm
+  Stream<BudgetModel?> getBudget(String userId, int month, int year) {
+    String docId = '${userId}_${year}_$month';
+    return _db.collection('budgets').doc(docId).snapshots().map((doc) {
+      if (doc.exists) {
+        return BudgetModel.fromMap(doc.data()!);
+      }
+      return null; // Chưa thiết lập
     });
   }
 
-  Future<void> saveBudget(
-    BudgetModel budget,
-  ) async {
-    await firestore
-        .collection(collection)
-        .doc(budget.id)
-        .set(budget.toMap());
+  // Lưu hoặc cập nhật ngân sách
+  Future<void> saveBudget(BudgetModel budget) async {
+    String docId = '${budget.userId}_${budget.year}_${budget.month}';
+    await _db.collection('budgets').doc(docId).set(budget.toMap());
   }
 }

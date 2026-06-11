@@ -1,7 +1,7 @@
-// lib/features/transaction/presentation/widgets/category_grid.dart
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter/iconify_flutter.dart'; 
 import '../../../category/data/models/category_model.dart';
+import '../../../category/data/category_colors.dart'; 
 
 class CategoryGrid extends StatelessWidget {
   final List<CategoryModel> categories;
@@ -17,7 +17,7 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryPink = const Color(0xFFFF6492);
+    final Color primaryColor = Theme.of(context).primaryColor;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -39,18 +39,17 @@ class CategoryGrid extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
-                color: isSelected ? primaryPink : Colors.grey.shade300,
-                width: isSelected ? 2 : 1, // Dày lên khi được chọn
+                color: isSelected ? primaryColor : Colors.grey.shade300,
+                width: isSelected ? 2 : 1, 
               ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 Iconify(
                   category.icon,
-                  color: isSelected ? primaryPink : Colors.black87,
+                  color: isSelected ? primaryColor : hexToColor(category.colorHex), 
                   size: 32,
                 ),
                 const SizedBox(height: 8),
@@ -59,7 +58,7 @@ class CategoryGrid extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: isSelected ? primaryPink : Colors.black87,
+                    color: isSelected ? primaryColor : Colors.black87,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),

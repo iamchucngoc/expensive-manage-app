@@ -1,19 +1,24 @@
 // lib/features/calendar/presentation/widgets/transaction_calendar_item.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconify_flutter/iconify_flutter.dart'; // THÊM ICONIFY
+import 'package:iconify_flutter/iconify_flutter.dart'; 
 import '../../../transaction/data/models/transaction_model.dart';
 import '../../../transaction/data/services/transaction_service.dart';
 import '../../../transaction/presentation/screens/add_transaction_screen.dart';
+import '../../../category/data/category_colors.dart'; 
 
 class TransactionCalendarItem extends StatelessWidget {
   final TransactionModel transaction;
 
   const TransactionCalendarItem({super.key, required this.transaction});
 
+  String _formatMoney(double value) {
+    if (value == 0) return "0";
+    return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
   @override
   Widget build(BuildContext context) {
-    
     final isIncome = transaction.type == TransactionType.income;
     final amountColor = isIncome ? Colors.blue : Colors.black;
 
@@ -34,7 +39,6 @@ class TransactionCalendarItem extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // CHUYỂN SANG MÀN HÌNH NHẬP VỚI TRANSACTION ĐƯỢC CHỌN ĐỂ SỬA
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -46,10 +50,7 @@ class TransactionCalendarItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
-
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade200, width: 1),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
           ),
           child: Row(
             children: [
@@ -63,43 +64,27 @@ class TransactionCalendarItem extends StatelessWidget {
                 child: Center(
                   child: Iconify(
                     transaction.categoryIcon, 
-                    color: Colors.black87,
+                    color: hexToColor(transaction.categoryColor), 
                     size: 24,
                   ),
                 ),
               ),
               const SizedBox(width: 16),
               
-              // Tên danh mục
               Expanded(
                 child: Text(
                   transaction.categoryName, 
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
               
-              // Số tiền
               Text(
-                '${transaction.amount.toInt()} đ',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: amountColor,
-                ),
+                '${_formatMoney(transaction.amount)} đ',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: amountColor),
               ),
               
               const SizedBox(width: 8),
-              
-            
-              const Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: Colors.grey,
-              ),
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
             ],
           ),
         ),

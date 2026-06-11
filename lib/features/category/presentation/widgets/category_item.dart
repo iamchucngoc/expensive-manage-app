@@ -22,13 +22,12 @@ class CategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Slidable(
       key: ValueKey(category.id),
-      // ActionPane nằm ở bên phải (vuốt từ phải sang trái)
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
-        extentRatio: 0.25, // Độ rộng của nút xóa
+        extentRatio: 0.25, 
         children: [
           SlidableAction(
-            onPressed: (context) => onDelete(), // Gọi hàm xóa khi bấm
+            onPressed: (context) => onDelete(), 
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline,
@@ -37,7 +36,7 @@ class CategoryItem extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: onEdit, // Chạm vào cả dòng để sửa
+        onTap: onEdit, 
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           child: Row(

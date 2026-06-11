@@ -1,8 +1,11 @@
+// lib/features/main/presentation/screens/main_screen.dart
 import 'package:flutter/material.dart';
 import '../../../transaction/presentation/screens/add_transaction_screen.dart';
 import '../../../calendar/presentation/screens/calendar_screen.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 import '../../../setting/presentation/screens/setting_screen.dart';
+import '../../../report/presentation/screens/report_screen.dart';
+import '../../../budget/presentation/screens/budget_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,15 +20,15 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> screens = [
     const AddTransactionScreen(),
     const CalendarScreen(),
-    const Center(child: Text("Thống kê")),
-    const Center(child: Text("Ngân sách")),
+    const ReportScreen(),
+    const BudgetScreen(),
     const SettingScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    const primaryPink = Color(0xFFFF6492);
-    const lightPinkBg = Color(0xFFFCEEED);
+    final Color primaryColor = Theme.of(context).primaryColor;
+    final Color lightBg = primaryColor.withOpacity(0.1);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -33,17 +36,16 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           Container(
             width: double.infinity,
-            color: lightPinkBg,
-            padding: const EdgeInsets.only(left: 20, right: 20, bottom: 12, top: 12),
+            color: lightBg,
             child: SafeArea(
-              bottom: false,
-              child: Align(
-                alignment: Alignment.centerLeft,
+              bottom: false, 
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Text(
                   'MoneyNote',
                   style: TextStyle(
-                    color: primaryPink,
-                    fontSize: 26,
+                    color: primaryColor,
+                    fontSize: 22,
                     fontWeight: FontWeight.w900,
                   ),
                 ),

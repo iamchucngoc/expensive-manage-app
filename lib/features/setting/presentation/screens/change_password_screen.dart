@@ -16,7 +16,6 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
-  final Color primaryPink = const Color(0xFFFF6492);
 
   void _handleSave() async {
     final oldPass = _oldPasswordController.text.trim();
@@ -108,7 +107,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final dialogBackgroundColor = const Color(0xFF9098A3); // Màu xám xanh
+    final dialogBackgroundColor = const Color(0xFF9098A3); 
+    final Color primaryPink = Theme.of(context).primaryColor;
 
     return Dialog(
       backgroundColor: dialogBackgroundColor,

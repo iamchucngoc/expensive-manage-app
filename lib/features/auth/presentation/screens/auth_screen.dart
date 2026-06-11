@@ -1,3 +1,4 @@
+// lib/features/auth/presentation/screens/auth_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,8 +18,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  final Color primaryPink = const Color(0xFFFF6492);
 
   @override
   void dispose() {
@@ -74,7 +73,6 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     } catch (e) {
-      // Bắt các lỗi không thuộc về Firebase (ví dụ: lỗi Provider)
       debugPrint("====== LỖI KHÁC: $e ======");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,10 +86,83 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // --- LOGIC XỬ LÝ QUÊN MẬT KHẨU ---
+  void _showForgotPasswordDialog(Color primaryColor) {
+    final resetEmailCtrl = TextEditingController(text: _emailController.text);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Quên mật khẩu?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Vui lòng nhập email của bạn. Chúng tôi sẽ gửi một đường link để đặt lại mật khẩu.', style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: resetEmailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                hintText: "example@email.com",
+                prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              if (resetEmailCtrl.text.isEmpty) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vui lòng nhập email'), backgroundColor: Colors.orange),
+                 );
+                 return;
+              }
+              
+              try {
+                // Gọi tới hàm resetPassword trong AuthService
+                await Provider.of<AuthService>(context, listen: false).resetPassword(resetEmailCtrl.text);
+                
+                if (context.mounted) {
+                  Navigator.pop(dialogContext); 
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đã gửi link khôi phục. Vui lòng kiểm tra hộp thư (bao gồm cả thư rác).'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Gửi link', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Theme.of(context).primaryColor;
+
     return Scaffold(
-      backgroundColor: primaryPink,
+      backgroundColor: primaryColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -148,14 +219,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             child: Row(
                               children: [
-                                _buildTabButton("Đăng nhập", true),
-                                _buildTabButton("Đăng ký", false),
+                                _buildTabButton("Đăng nhập", true, primaryColor),
+                                _buildTabButton("Đăng ký", false, primaryColor),
                               ],
                             ),
                           ),
                           const SizedBox(height: 24),
 
-                          // TextFields
+                          // TextFields: Email
                           const Text("Email",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
@@ -180,12 +251,13 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: primaryPink),
+                                borderSide: BorderSide(color: primaryColor),
                               ),
                             ),
                           ),
                           const SizedBox(height: 16),
 
+                          // TextFields: Mật khẩu
                           const Text("Mật khẩu",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
@@ -223,7 +295,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: primaryPink),
+                                borderSide: BorderSide(color: primaryColor),
                               ),
                             ),
                           ),
@@ -233,13 +305,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: () {
-                                  // Xử lý quên mật khẩu sau
-                                },
+                                onPressed: () => _showForgotPasswordDialog(primaryColor), // GỌI POPUP
                                 child: Text(
                                   "Quên mật khẩu?",
                                   style: TextStyle(
-                                      color: primaryPink,
+                                      color: primaryColor,
                                       fontWeight: FontWeight.w600),
                                 ),
                               ),
@@ -253,7 +323,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             child: ElevatedButton(
                               onPressed: isLoading ? null : _submitAuth,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryPink,
+                                backgroundColor: primaryColor,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -275,54 +345,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                     ),
                             ),
                           ),
-
-                          const SizedBox(height: 24),
-                          // Divider
-                          Row(
-                            children: [
-                              Expanded(child: Divider(color: Colors.grey.shade300)),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text("hoặc",
-                                    style: TextStyle(color: Colors.grey)),
-                              ),
-                              Expanded(child: Divider(color: Colors.grey.shade300)),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Nút Google
-                          SizedBox(
-                            height: 50,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text("Tính năng đang phát triển")),
-                                );
-                              },
-                              style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                side: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Placeholder cho icon Google
-                                  const Icon(Icons.g_mobiledata,
-                                      color: Colors.red, size: 32),
-                                  const SizedBox(width: 8),
-                                  const Text("Tiếp tục với Google",
-                                      style: TextStyle(
-                                          color: Colors.black87,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 8), 
                         ],
                       ),
                     ),
@@ -344,7 +367,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildTabButton(String title, bool isLoginTab) {
+  Widget _buildTabButton(String title, bool isLoginTab, Color themeColor) {
     final isSelected = isLogin == isLoginTab;
     return Expanded(
       child: GestureDetector(
@@ -366,7 +389,7 @@ class _AuthScreenState extends State<AuthScreen> {
             title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? primaryPink : Colors.grey,
+              color: isSelected ? themeColor : Colors.grey,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             ),
           ),

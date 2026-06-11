@@ -11,13 +11,15 @@ class GroupedTransactionList extends StatelessWidget {
     required this.transactions,
   });
 
+  String _formatMoney(double value) {
+    if (value == 0) return "0";
+    return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 1. Xếp ngày tăng dần để hiển thị từ đầu tháng đến cuối tháng
-    final sortedTransactions = List<TransactionModel>.from(transactions)
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final sortedTransactions = List<TransactionModel>.from(transactions)..sort((a, b) => a.date.compareTo(b.date));
 
-    // 2. Gom nhóm giao dịch theo từng ngày
     Map<String, List<TransactionModel>> grouped = {};
     for (var t in sortedTransactions) {
       String dateKey = "${t.date.day}/${t.date.month}/${t.date.year}";
@@ -34,9 +36,8 @@ class GroupedTransactionList extends StatelessWidget {
       );
     }
 
-    // 3. Render danh sách
     return ListView.builder(
-      shrinkWrap: true, // Bắt buộc để cuộn mượt bên trong SingleChildScrollView
+      shrinkWrap: true, 
       physics: const NeverScrollableScrollPhysics(), 
       padding: EdgeInsets.zero,
       itemCount: grouped.length,
@@ -50,22 +51,20 @@ class GroupedTransactionList extends StatelessWidget {
 
         return Column(
           children: [
-            // Header ngày (Dải màu tím nhạt)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: const Color(0xFFCDB4DB), // Nền tím đồng bộ với lịch
+              color: const Color(0xFFCDB4DB), 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(dateKey, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  Text(dateKey, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   Text(
-                    '${dailyTotal.toInt()} đ',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    '${_formatMoney(dailyTotal)} đ',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
               ),
             ),
-            // Các giao dịch trong ngày
             ...dayTransactions.map((t) => TransactionCalendarItem(transaction: t)).toList(),
           ],
         );
