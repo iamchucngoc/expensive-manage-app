@@ -1,5 +1,6 @@
-// lib/features/auth/presentation/screens/splash_screen.dart
+// lib/features/splash/presentation/screens/splash_screen.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,19 +13,29 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    
-    // Chuyển sang màn hình Auth sau 2 giây
+    _checkAuth();
+  }
+
+  void _checkAuth() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/auth');
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          Navigator.pushReplacementNamed(context, '/main');
+        } else {
+          Navigator.pushReplacementNamed(context, '/auth');
+        }
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    
+    final Color primaryColor = Theme.of(context).primaryColor; 
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: primaryColor, 
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,18 +44,18 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: Colors.white.withOpacity(0.2), 
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
-                Icons.account_balance_wallet,
+                Icons.account_balance_wallet_rounded,
                 size: 60,
                 color: Colors.white,
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              "MoneyNote",
+              "NoraNote",
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
@@ -54,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 8),
             const Text(
               "Quản lý tài chính thông minh",
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(fontSize: 16, color: Colors.white70),
             ),
           ],
         ),

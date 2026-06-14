@@ -1,4 +1,5 @@
-
+// lib/features/transaction/data/models/transaction_model.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 enum TransactionType { income, expense }
 
 class TransactionModel {
@@ -8,9 +9,10 @@ class TransactionModel {
   final TransactionType type;
   final String categoryId;
   final String categoryName;
+  final String categoryIcon;
+  final String categoryColor; 
   final String? note;
   final DateTime date;
-  final DateTime createdAt;
 
   TransactionModel({
     required this.id,
@@ -19,36 +21,49 @@ class TransactionModel {
     required this.type,
     required this.categoryId,
     required this.categoryName,
+    required this.categoryIcon,
+    required this.categoryColor, 
     this.note,
     required this.date,
-    DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'userId': userId,
       'amount': amount,
-      'type': type.name,
+      'type': type == TransactionType.income ? 'income' : 'expense',
       'categoryId': categoryId,
       'categoryName': categoryName,
+      'categoryIcon': categoryIcon,
+      'categoryColor': categoryColor,
       'note': note,
       'date': date.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
     };
   }
 
-  factory TransactionModel.fromMap(Map<String, dynamic> map) {
+factory TransactionModel.fromMap(Map<String, dynamic> map) {
+
+    DateTime parsedDate = DateTime.now();
+    if (map['date'] != null) {
+      if (map['date'] is Timestamp) {
+        parsedDate = (map['date'] as Timestamp).toDate(); 
+      } else if (map['date'] is String) {
+        parsedDate = DateTime.tryParse(map['date']) ?? DateTime.now(); 
+      }
+    }
+
     return TransactionModel(
-      id: map['id'],
-      userId: map['userId'],
-      amount: map['amount'].toDouble(),
-      type: TransactionType.values.byName(map['type']),
-      categoryId: map['categoryId'],
-      categoryName: map['categoryName'],
+      id: map['id'] ?? '',
+      userId: map['userId'] ?? '',
+      amount: (map['amount'] ?? 0).toDouble(),
+      type: map['type'] == 'income' ? TransactionType.income : TransactionType.expense,
+      categoryId: map['categoryId'] ?? '',
+      categoryName: map['categoryName'] ?? '',
+      categoryIcon: map['categoryIcon'] ?? '',
+      categoryColor: map['categoryColor'] ?? '#000000',
       note: map['note'],
-      date: DateTime.parse(map['date']),
-      createdAt: DateTime.parse(map['createdAt']),
+      date: parsedDate, 
     );
   }
 }

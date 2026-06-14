@@ -5,23 +5,26 @@ import '../../../transaction/data/models/transaction_model.dart';
 class CalendarWidget extends StatelessWidget {
   final List<TransactionModel> transactions;
   final DateTime currentMonth;
+  final Function(DateTime) onDateSelected;
 
   const CalendarWidget({
     super.key,
     required this.transactions,
     required this.currentMonth,
+    required this.onDateSelected,
   });
 
+  String _formatMoney(double value) {
+    if (value == 0) return "0";
+    return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
   double _getIncome(DateTime day) {
-    return transactions
-        .where((t) => _isSameDay(t.date, day) && t.type == TransactionType.income)
-        .fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.where((t) => _isSameDay(t.date, day) && t.type == TransactionType.income).fold(0.0, (sum, t) => sum + t.amount);
   }
 
   double _getExpense(DateTime day) {
-    return transactions
-        .where((t) => _isSameDay(t.date, day) && t.type == TransactionType.expense)
-        .fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.where((t) => _isSameDay(t.date, day) && t.type == TransactionType.expense).fold(0.0, (sum, t) => sum + t.amount);
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -31,95 +34,101 @@ class CalendarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final daysInMonth = DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
-    final firstWeekday = DateTime(currentMonth.year, currentMonth.month, 1).weekday; // 1 = T2
+    final firstDayOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
+    final firstWeekday = firstDayOfMonth.weekday; 
+
+    final prevMonthDaysToShow = firstWeekday - 1;
+    final prevMonth = DateTime(currentMonth.year, currentMonth.month - 1);
+    final daysInPrevMonth = DateUtils.getDaysInMonth(prevMonth.year, prevMonth.month);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300, width: 1)),
       child: Column(
         children: [
-          // Header tháng
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              "${currentMonth.month.toString().padLeft(2, '0')}/${currentMonth.year}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          // Ngày trong tuần
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+          Container(
+            color: const Color(0xFFCDB4DB), 
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: const ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+              children: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
                   .map((e) => Expanded(
-                        child: Center(
-                          child: Text(e, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 13)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(e, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         ),
                       ))
                   .toList(),
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          // Grid lịch - Full month
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero, 
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              childAspectRatio: 0.95,        // Điều chỉnh để vuông hơn
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 6,
+              childAspectRatio: 0.85, 
+              mainAxisSpacing: 0, 
+              crossAxisSpacing: 0, 
             ),
             itemCount: 42,
             itemBuilder: (context, index) {
-              final dayNumber = index - firstWeekday + 2;
+              DateTime date;
+              bool isCurrentMonth = true;
 
-              if (dayNumber < 1 || dayNumber > daysInMonth) {
-                return const SizedBox();
+              if (index < prevMonthDaysToShow) {
+                isCurrentMonth = false;
+                date = DateTime(prevMonth.year, prevMonth.month, daysInPrevMonth - prevMonthDaysToShow + index + 1);
+              } else if (index >= prevMonthDaysToShow + daysInMonth) {
+                isCurrentMonth = false;
+                date = DateTime(currentMonth.year, currentMonth.month + 1, index - (prevMonthDaysToShow + daysInMonth) + 1);
+              } else {
+                date = DateTime(currentMonth.year, currentMonth.month, index - prevMonthDaysToShow + 1);
               }
 
-              final date = DateTime(currentMonth.year, currentMonth.month, dayNumber);
               final income = _getIncome(date);
               final expense = _getExpense(date);
 
-              return Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '$dayNumber',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    if (income > 0 || expense > 0) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (income > 0)
-                            Text('+${income.toInt()}', style: const TextStyle(fontSize: 10, color: Colors.blue)),
-                          if (expense > 0)
-                            Text(' -${expense.toInt()}', style: const TextStyle(fontSize: 10, color: Colors.red)),
-                        ],
+              return GestureDetector(
+                onTap: () => onDateSelected(date),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isCurrentMonth ? Colors.white : const Color(0xFFFDE8EB),
+                    border: Border.all(color: Colors.grey.shade300, width: 0.5), 
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, 
+                    children: [
+                      Text(
+                        '${date.day}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isCurrentMonth ? Colors.black : Colors.black54,
+                          fontWeight: isCurrentMonth ? FontWeight.w500 : FontWeight.normal,
+                        ),
                       ),
+                      const Spacer(),
+                      if (income > 0)
+                        Align(
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(_formatMoney(income), style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      if (expense > 0)
+                        Align(
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(_formatMoney(expense), style: const TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
                     ],
-                  ],
+                  ),
                 ),
               );
             },
           ),
-          const SizedBox(height: 12),
         ],
       ),
     );

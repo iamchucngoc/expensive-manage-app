@@ -1,11 +1,11 @@
+// lib/features/main/presentation/screens/main_screen.dart
 import 'package:flutter/material.dart';
-
 import '../../../transaction/presentation/screens/add_transaction_screen.dart';
 import '../../../calendar/presentation/screens/calendar_screen.dart';
-import '../../../report/presentation/screens/report_screen.dart';
-import '../../../setting/presentation/screens/setting_screen.dart';
-
 import '../../../../widgets/custom_bottom_nav.dart';
+import '../../../setting/presentation/screens/setting_screen.dart';
+import '../../../report/presentation/screens/report_screen.dart';
+import '../../../budget/presentation/screens/budget_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,67 +15,50 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-
   int currentIndex = 0;
 
   final List<Widget> screens = [
     const AddTransactionScreen(),
     const CalendarScreen(),
     const ReportScreen(),
+    const BudgetScreen(),
     const SettingScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Theme.of(context).primaryColor;
+    final Color lightBg = primaryColor.withOpacity(0.1);
 
     return Scaffold(
-      backgroundColor: const Color(0xfff5f5f5),
-
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-
           Container(
             width: double.infinity,
-            color: Colors.black,
-
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 18,
-            ),
-
-            child: const SafeArea(
-              bottom: false,
-
-              child: Align(
-                alignment: Alignment.centerLeft,
-
+            color: lightBg,
+            child: SafeArea(
+              bottom: false, 
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Text(
-                  'MoneyNote',
-
+                  'NoraNote',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
             ),
           ),
-
-          Expanded(
-            child: screens[currentIndex],
-          ),
+          Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+          Expanded(child: screens[currentIndex]),
         ],
       ),
-
       bottomNavigationBar: CustomBottomNav(
         currentIndex: currentIndex,
-
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => currentIndex = index),
       ),
     );
   }
