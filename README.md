@@ -14,7 +14,7 @@ NoraNote là ứng dụng quản lý tài chính và chi tiêu cá nhân thông 
 * **Bàn phím tùy chỉnh (Custom In-app Keyboard):** Thiết kế bàn phím số riêng biệt tích hợp ngay trong app giúp tối ưu hóa tốc độ và trải nghiệm nhập liệu tiền tệ.
 * **Cá nhân hóa giao diện (Dynamic Theme):** Hỗ trợ thay đổi màu sắc chủ đạo toàn hệ thống theo sở thích cá nhân của người dùng.
 * **Phân loại danh mục thông minh (Smart Categories):** Hệ thống danh mục thu/chi được tổ chức khoa học (Ăn uống, Di chuyển, Giáo dục, Lương...), hỗ trợ người dùng dễ dàng phân loại và theo dõi dòng tiền đổ vào đâu.
-* **Thiết lập hạn mức ngân sách (Budget Management):** Tính năng đặt hạn mức chi tiêu cho từng danh mục theo tháng, tự động tính toán và báo cáo khi chi tiêu sắp vượt ngưỡng an toàn.
+* **Quản lý hạn mức ngân sách trực quan (Budget Tracking):** Tính năng đặt hạn mức chi tiêu cho từng danh mục theo tháng, hiển thị tiến độ sử dụng bằng thanh cột ngang trực quan, giúp người dùng dễ dàng theo dõi lượng tiền còn lại trong hạn mức bằng mắt thường.
 * **Báo cáo trực quan (Smart Analytics):** Hệ thống biểu đồ tròn và biểu đồ cột trực quan, phân tích sâu tỷ trọng chi tiêu và xu hướng biến động tài chính theo tuần/tháng.
 * **Trợ lý Tài chính AI (Gemini AI Integration):** Tích hợp mô hình AI siêu tốc đóng vai trò cố vấn tâm lý, phân tích trực tiếp số liệu báo cáo thực tế để đưa ra lời khuyên hành động cụ thể, cá nhân hóa cho từng người dùng.
 
