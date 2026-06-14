@@ -55,7 +55,7 @@ class _ThemeSetupScreenState extends State<ThemeSetupScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  Text('MoneyNote', style: TextStyle(color: previewColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('NoraNote', style: TextStyle(color: previewColor, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

@@ -185,7 +185,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      "MoneyNote",
+                      "NoraNote",
                       style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -357,7 +357,7 @@ class _AuthScreenState extends State<AuthScreen> {
             const Padding(
               padding: EdgeInsets.only(bottom: 16.0),
               child: Text(
-                "© 2026 MoneyNote. All rights reserved.",
+                "© 2026 NoraNote. All rights reserved.",
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ),

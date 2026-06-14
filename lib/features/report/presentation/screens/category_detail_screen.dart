@@ -45,9 +45,8 @@ class CategoryDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  // ĐÃ XÓA TỪ KHÓA 'const' Ở ĐÂY
                   Text(
-                    'MoneyNote',
+                    'NoraNote',
                     style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],

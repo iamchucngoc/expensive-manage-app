@@ -42,7 +42,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Text(
-                  'MoneyNote',
+                  'NoraNote',
                   style: TextStyle(
                     color: primaryColor,
                     fontSize: 22,
