@@ -1,4 +1,3 @@
-// lib/features/category/presentation/screens/category_management_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +16,6 @@ class CategoryManagementScreen extends StatefulWidget {
 
 class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   bool showExpense = true;
- 
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +74,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 builder: (_) => AddCategoryBottomSheet(
-                  initialType: showExpense ? "expense" : "income", // Truyền loại vào đây
+                  initialType: showExpense ? "expense" : "income", 
                 ),
               );
             },
@@ -126,11 +124,53 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                           backgroundColor: Colors.transparent,
                           builder: (_) => AddCategoryBottomSheet(
                             category: category,
-                            initialType: showExpense ? "expense" : "income", // Truyền loại vào đây
+                            initialType: showExpense ? "expense" : "income",
                           ),
                         );
                       },
-                      onDelete: () => categoryService.deleteCategory(category.id),
+                      
+                      onDelete: () {
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            title: const Text('Xác nhận xóa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            content: const Text('Bạn có chắc chắn muốn xóa danh mục này?'),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext),
+                                child: const Text('Hủy', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () async {
+                                  Navigator.pop(dialogContext);
+                                  try {
+                                    await categoryService.deleteCategory(category.id);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Đã xóa danh mục thành công!'), backgroundColor: Colors.green),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text('Xóa', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     );
                   },
                 );

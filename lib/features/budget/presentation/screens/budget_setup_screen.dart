@@ -1,4 +1,3 @@
-// lib/features/budget/presentation/screens/budget_setup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -114,32 +113,64 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
     );
   }
 
+  // 🔥 NÂNG CẤP HÀM LƯU: THÊM THÔNG BÁO SNACKBAR XANH MƯỚT
   Future<void> _save() async {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final budget = BudgetModel(
       id: '${userId}_${selectedYear}_$selectedMonth', userId: userId, month: selectedMonth, year: selectedYear,
       totalBudget: totalBudget, categoryBudgets: categoryBudgets,
     );
-    await budgetService.saveBudget(budget);
-    if (mounted) Navigator.pop(context);
+    
+    try {
+      await budgetService.saveBudget(budget);
+      if (mounted) {
+        Navigator.pop(context); // Đóng màn hình cài đặt ngân sách
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã cập nhật ngân sách thành công!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi lưu ngân sách: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
+  // 🔥 NÂNG CẤP HÀM NHẬP TIỀN: CHẶN SỐ ÂM
   Future<void> _showAmountInputDialog(String title, double currentValue, Function(double) onSave) async {
     TextEditingController ctrl = TextEditingController(text: currentValue > 0 ? currentValue.toInt().toString() : '');
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(title, style: const TextStyle(fontSize: 16)),
         content: TextField(controller: ctrl, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Nhập số tiền', suffixText: 'đ'), autofocus: true),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () {
               double val = double.tryParse(ctrl.text) ?? 0;
+              
+              // Validate bắt buộc >= 0
+              if (val < 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Vui lòng nhập số tiền lớn hơn hoặc bằng 0!'), 
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return; // Dừng lại, không thực thi lệnh lưu bên dưới
+              }
+              
               onSave(val);
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
-            child: const Text('Lưu'),
+            child: const Text('Xác nhận', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -171,7 +202,7 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
                 children: [
                   GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.close, size: 28)),
                   const Text('Cài đặt ngân sách', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  GestureDetector(onTap: _save, child: const Text('Lưu', style: TextStyle(fontSize: 16, color: Colors.blue))),
+                  GestureDetector(onTap: _save, child: Text('Lưu', style: TextStyle(fontSize: 16, color: primaryColor, fontWeight: FontWeight.bold))),
                 ],
               ),
             ),
