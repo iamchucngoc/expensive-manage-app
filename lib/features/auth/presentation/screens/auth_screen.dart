@@ -2,7 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../services/auth_service.dart';
+import '../../data/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../category/data/services/category_service.dart'; 
+import '../../data/models/user_model.dart';
+import '../../data/services/user_service.dart';
+import '../../../../core/theme_provider.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -41,11 +46,43 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
       if (isLogin) {
+        // --- 1. ĐĂNG NHẬP ---
         await authService.signInWithEmailPassword(email, password);
+
+        // Kéo màu theme từ Firestore D_users về để áp dụng
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          final userDoc = await UserService().getUser(currentUser.uid);
+          if (userDoc != null && userDoc.themeColor.isNotEmpty) {
+            final String hexColor = userDoc.themeColor.replaceAll('#', '');
+            final Color firestoreColor = Color(int.parse('FF$hexColor', radix: 16));
+            
+            themeProvider.updateColor(firestoreColor);
+          }
+        }
       } else {
+        // --- 2. ĐĂNG KÝ ---
         await authService.signUpWithEmailPassword(email, password);
+
+        // Khởi tạo bảng D_users mới
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          final defaultColor = const Color(0xFFFF6492);
+          final newUser = UserModel(
+            uid: currentUser.uid,
+            email: currentUser.email ?? email,
+            themeColor: '#FF6492',
+          );
+          await UserService().saveUser(newUser);
+
+          await CategoryService().seedDefaultCategories(currentUser.uid);
+
+          // Cập nhật giao diện về màu mặc định
+          themeProvider.updateColor(defaultColor);
+        }
       }
 
       if (mounted) {

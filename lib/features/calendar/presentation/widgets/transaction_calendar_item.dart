@@ -17,6 +17,66 @@ class TransactionCalendarItem extends StatelessWidget {
     return value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
   }
 
+ 
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Xác nhận xóa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
+          content: const Text('Bạn có chắc chắn muốn xóa giao dịch này không? Thao tác này không thể hoàn tác!'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy bỏ', style: TextStyle(color: Colors.grey, fontSize: 16)),
+              onPressed: () => Navigator.of(dialogContext).pop(), 
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Xóa', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); 
+                
+                try {
+                  
+                  await TransactionService().deleteTransaction(transaction.id);
+                  
+                
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(' Đã xóa giao dịch thành công!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Lỗi khi xóa: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
@@ -29,7 +89,7 @@ class TransactionCalendarItem extends StatelessWidget {
         extentRatio: 0.25, 
         children: [
           SlidableAction(
-            onPressed: (context) => TransactionService().deleteTransaction(transaction.id),
+            onPressed: (context) => _showDeleteDialog(context),
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline,
