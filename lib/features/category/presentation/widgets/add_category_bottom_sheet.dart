@@ -1,8 +1,8 @@
-// lib/features/category/presentation/widgets/add_category_bottom_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../data/category_icons.dart';
 import '../../data/category_colors.dart';
@@ -11,7 +11,7 @@ import '../../data/services/category_service.dart';
 
 class AddCategoryBottomSheet extends StatefulWidget {
   final CategoryModel? category;
-  final String initialType; // Nhận biết tab Thu hay Chi
+  final String initialType; 
 
   const AddCategoryBottomSheet({
     super.key, 
@@ -30,14 +30,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
   late Color selectedColor;
   late String selectedType;
 
-
   @override
   void initState() {
     super.initState();
     selectedIcon = categoryIcons[0];
     selectedColor = categoryColors[0];
     
-    // Lấy type từ danh mục cũ (nếu đang sửa), nếu tạo mới thì lấy initialType
     selectedType = widget.category?.type ?? widget.initialType;
 
     if (widget.category != null) {
@@ -47,25 +45,76 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
     }
   }
 
+  // 🔥 NÂNG CẤP HÀM LƯU: THÊM CÁC BƯỚC VALIDATE 🔥
   Future<void> save() async {
-    if (controller.text.trim().isEmpty) return;
+    final name = controller.text.trim();
+    
+    // 1. Check không được để trống
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng không để trống tên danh mục!'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
 
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    // 2. Check trùng tên trên Database
+    final snapshot = await FirebaseFirestore.instance
+        .collection('categories') 
+        .where('userId', isEqualTo: userId)
+        .where('type', isEqualTo: selectedType)
+        .get();
+
+    // Duyệt qua danh sách hiện có để xem tên có bị trùng không (không phân biệt hoa/thường)
+    final isDuplicate = snapshot.docs.any((doc) {
+      final catName = doc.data()['name'] as String;
+      return catName.toLowerCase() == name.toLowerCase() && doc.id != widget.category?.id;
+    });
+
+    if (isDuplicate) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tên danh mục này đã tồn tại! Vui lòng chọn tên khác.'), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
+
+    // 3. Tiến hành Lưu hoặc Cập nhật
     final category = CategoryModel(
       id: widget.category?.id ?? const Uuid().v4(),
-      userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-      name: controller.text.trim(),
+      userId: userId,
+      name: name,
       icon: selectedIcon,
       type: selectedType,
       colorHex: colorToHex(selectedColor),
     );
 
-    if (widget.category == null) {
-      await CategoryService().addCategory(category);
-    } else {
-      await CategoryService().updateCategory(category);
-    }
+    try {
+      if (widget.category == null) {
+        await CategoryService().addCategory(category);
+      } else {
+        await CategoryService().updateCategory(category);
+      }
 
-    if (mounted) Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+        // 4. Thông báo thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.category == null ? 'Đã thêm danh mục thành công!' : 'Đã cập nhật danh mục thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Lỗi hệ thống: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override

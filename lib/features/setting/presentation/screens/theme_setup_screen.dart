@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../auth/data/services/user_service.dart'; // Đường dẫn trỏ về UserService của bạn
 
 class ThemeSetupScreen extends StatefulWidget {
   const ThemeSetupScreen({super.key});
@@ -34,10 +36,22 @@ class _ThemeSetupScreenState extends State<ThemeSetupScreen> {
     }
   }
 
-  void _saveTheme() {
+void _saveTheme() async {
     final selectedColor = ThemeProvider.availableThemes[_currentIndex].color;
     Provider.of<ThemeProvider>(context, listen: false).updateColor(selectedColor);
-    Navigator.pop(context);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        String hexColor = '#${selectedColor.value.toRadixString(16).substring(2).toUpperCase()}';
+        
+        await UserService().updateThemeColor(user.uid, hexColor);
+      } catch (e) {
+        debugPrint("Lỗi không thể lưu màu lên Firebase: $e");
+      }
+    }
+
+    if (mounted) Navigator.pop(context);
   }
 
   @override
