@@ -199,7 +199,9 @@ class _ReportScreenState extends State<ReportScreen> {
                                         Text('AI Cố vấn 🌸', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontSize: 18)),
                                       ],
                                     ),
-                                    content: Text(advice, style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87)),
+                                    content: SingleChildScrollView(
+                                      child: Text(advice, style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87)),
+                                    ),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),

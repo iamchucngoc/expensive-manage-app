@@ -2,7 +2,8 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class AiAdvisorService {
-  static const String _apiKey = ''; 
+  static const String _apiKey = '';
+  static const String _modelName = 'gemini-3.1-flash-lite';
 
   Future<String> getAdvice({
     required double income,
@@ -13,27 +14,46 @@ class AiAdvisorService {
       return "🌸 Xin chào! Ứng dụng chưa được cấu hình API Key từ Google AI Studio nên mình chưa thể phân tích số liệu được.";
     }
 
-    try {
-      final model = GenerativeModel(model: 'gemini-3.1-flash-lite', apiKey: _apiKey); 
-      
-      String catSummary = sortedCategories
-          .map((e) => "- ${e.key}: ${e.value['amount'].toStringAsFixed(0)} đ")
-          .join('\n');
+    final balance = income - expense;
+    final savingsRate = income > 0 ? ((balance / income) * 100) : 0;
+    final topCategory = sortedCategories.isNotEmpty ? sortedCategories.first : null;
+    final topCategoryName = topCategory?.key ?? 'Chưa xác định';
+    final topCategoryAmount = topCategory != null ? (topCategory.value['amount'] as double) : 0.0;
+    final topCategoryShare = expense > 0 ? (topCategoryAmount / expense * 100) : 0;
 
-      // Thiết lập Prompt - Ra lệnh cho AI đóng vai và ép văn phong
+    final categorySummary = sortedCategories
+        .map((e) {
+          final amount = e.value['amount'] as double;
+          final share = expense > 0 ? (amount / expense * 100) : 0;
+          return '- ${e.key}: ${amount.toStringAsFixed(0)} đ (${share.toStringAsFixed(0)}%)';
+        })
+        .join('\n');
+
+    try {
+      final model = GenerativeModel(model: _modelName, apiKey: _apiKey);
+
       final prompt = '''
-        Bạn là một chuyên gia cố vấn tài chính cá nhân thông minh, thân thiện và cực kỳ tâm lý.
-        Dưới đây là báo cáo tài chính tháng này của tôi:
-        - Tổng tiền thu vào (Thu nhập): ${income.toStringAsFixed(0)} đ
-        - Tổng tiền chi ra (Chi tiêu): ${expense.toStringAsFixed(0)} đ
-        - Chi tiết các hạng mục đã chi tiêu:
-        $catSummary
-        
-        Nhiệm vụ của bạn:
-        1. Nhận xét ngắn gọn xem tôi đang quản lý tiền tốt hay chưa (Thu có bù nổi Chi không).
-        2. Nhìn vào danh mục tôi tiêu nhiều tiền nhất, đưa ra 1 lời khuyên thực tế, thông minh để tôi tiết kiệm hơn vào tháng sau.
-        3. Yêu cầu văn phong: Trẻ trung, chuyên nghiệp, ngắn gọn dưới 90 từ, sử dụng các icon cảm xúc dễ thương (như ✨, 🌸, 💸, 📑), gọi tôi là "bạn" và xưng "mình". KHÔNG sử dụng các định dạng markdown dấu sao phức tạp (như **, ###).
-      ''';
+Bạn là một chuyên gia tư vấn tài chính cá nhân cho người Việt Nam. Dưới đây là dữ liệu chi tiêu và thu nhập tháng này. Hãy phân tích chuyên sâu và trả lời hoàn toàn bằng tiếng Việt.
+
+Dữ liệu tháng:
+- Tổng thu nhập: ${income.toStringAsFixed(0)} đ
+- Tổng chi tiêu: ${expense.toStringAsFixed(0)} đ
+- Số dư cuối tháng: ${balance.toStringAsFixed(0)} đ
+- Tỷ lệ tiết kiệm: ${savingsRate.toStringAsFixed(0)}%
+- Mục chi tiêu lớn nhất: $topCategoryName với ${topCategoryAmount.toStringAsFixed(0)} đ (${topCategoryShare.toStringAsFixed(0)}% tổng chi)
+- Chi tiết chi tiêu:
+$categorySummary
+
+Yêu cầu:
+1. Đánh giá rõ tình hình tài chính: đang tiết kiệm, cân bằng hay đang chi tiêu quá tay. Nêu rõ số dư và tỷ lệ tiết kiệm.
+2. Chỉ ra rủi ro chính trong cách chi tiêu hiện tại và giải thích vì sao nó đáng lo.
+3. Dự đoán nếu giữ tốc độ chi tiêu này thì khả năng vượt quá ngân sách trong tháng như thế nào.
+4. Đưa ra 3 khuyến nghị cụ thể: một cho quản lý tổng ngân sách, một cho tối ưu mục chi tiêu lớn nhất, và một cho thói quen chi tiêu.
+5. Trả lời bằng tiếng Việt, giọng chuyên nghiệp và thân thiện, câu ngắn gọn, rõ ràng. Dùng emoji như ✨, 💸, 📑 để làm tăng cảm giác chuyên nghiệp.
+6. Không dùng markdown, không dùng tiếng Anh, không trả lời chung chung.
+
+Trả lời:
+''';
 
       final response = await model.generateContent([Content.text(prompt)]);
       return response.text ?? 'Hệ thống AI đang bận xử lý số liệu một chút, bạn thử lại sau nhé! 💤';
