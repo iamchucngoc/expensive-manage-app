@@ -1,6 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 
@@ -20,6 +21,13 @@ import 'features/auth/data/services/user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('No .env file found: $e');
+  }
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

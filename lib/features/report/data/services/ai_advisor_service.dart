@@ -1,8 +1,10 @@
 // lib/features/report/data/services/ai_advisor_service.dart
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AiAdvisorService {
-  static const String _apiKey = '';
+ 
+  static String get _apiKey => dotenv.env['AI_ADVISOR_API_KEY'] ?? '';
   static const String _modelName = 'gemini-3.1-flash-lite';
 
   Future<String> getAdvice({
