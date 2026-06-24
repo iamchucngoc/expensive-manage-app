@@ -1,8 +1,20 @@
 // lib/features/report/data/services/ai_advisor_service.dart
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AiAdvisorService {
-  static const String _apiKey = '';
+
+  static String get _apiKey {
+    try {
+      return dotenv.env['AI_ADVISOR_API_KEY'] ?? '';
+    } catch (e) {
+      debugPrint('🔹 [AI] Error reading dotenv: $e');
+      return '';
+    }
+  }
   static const String _modelName = 'gemini-3.1-flash-lite';
 
   Future<String> getAdvice({
@@ -13,6 +25,9 @@ class AiAdvisorService {
     if (_apiKey.isEmpty) {
       return "🌸 Xin chào! Ứng dụng chưa được cấu hình API Key từ Google AI Studio nên mình chưa thể phân tích số liệu được.";
     }
+
+    debugPrint('🔹 [AI] Starting getAdvice...');
+    debugPrint('🔹 [AI] API Key loaded: ${_apiKey.substring(0, 10)}...');
 
     final balance = income - expense;
     final savingsRate = income > 0 ? ((balance / income) * 100) : 0;
@@ -31,6 +46,7 @@ class AiAdvisorService {
 
     try {
       final model = GenerativeModel(model: _modelName, apiKey: _apiKey);
+      debugPrint('🔹 [AI] Model created: $_modelName');
 
       final prompt = '''
 Bạn là một chuyên gia tư vấn tài chính cá nhân cho người Việt Nam. Dưới đây là dữ liệu chi tiêu và thu nhập tháng này. Hãy phân tích chuyên sâu và trả lời hoàn toàn bằng tiếng Việt.
@@ -54,10 +70,22 @@ Yêu cầu:
 
 Trả lời:
 ''';
+      debugPrint('🔹 [AI] Prompt prepared, calling generateContent...');
 
-      final response = await model.generateContent([Content.text(prompt)]);
+      final response = await model
+          .generateContent([Content.text(prompt)])
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+            debugPrint('🔹 [AI] ⏱️ TIMEOUT: Request took too long (10s)');
+            throw TimeoutException('Yêu cầu đến AI quá lâu. Vui lòng thử lại sau.');
+          });
+      
+      debugPrint('🔹 [AI] ✅ Response received successfully');
       return response.text ?? 'Hệ thống AI đang bận xử lý số liệu một chút, bạn thử lại sau nhé! 💤';
+    } on TimeoutException catch (e) {
+      debugPrint('🔹 [AI] ❌ TimeoutException: ${e.message}');
+      return 'AI phản hồi chậm (quá 10 giây).\n${e.message}';
     } catch (e) {
+      debugPrint('🔹 [AI] ❌ Error: $e');
       return 'Kết nối với trợ lý AI thất bại.\nLỗi: $e';
     }
   }
