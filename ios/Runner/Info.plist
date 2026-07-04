@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Ứng dụng cần quyền camera để chụp hóa đơn và tự động điền thông tin giao dịch.</string>
 </dict>
 </plist>

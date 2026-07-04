@@ -15,7 +15,9 @@ class AiAdvisorService {
       return '';
     }
   }
-  static const String _modelName = 'gemini-3.1-flash-lite';
+  static String get _modelName {
+    return dotenv.env['GEMINI_MODEL'] ?? 'gemini-3.1-flash-lite';
+  }
 
   Future<String> getAdvice({
     required double income,
