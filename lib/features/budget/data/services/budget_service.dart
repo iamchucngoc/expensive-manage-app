@@ -5,6 +5,18 @@ import '../models/budget_model.dart';
 class BudgetService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  static bool shouldWarnBudgetExceeded({
+    required double newAmount,
+    required double categoryBudget,
+    required double currentMonthlySpend,
+  }) {
+    if (newAmount <= 0 || categoryBudget <= 0) {
+      return false;
+    }
+
+    return currentMonthlySpend + newAmount > categoryBudget;
+  }
+
   // Lấy ngân sách theo tháng/năm
   Stream<BudgetModel?> getBudget(String userId, int month, int year) {
     String docId = '${userId}_${year}_$month';

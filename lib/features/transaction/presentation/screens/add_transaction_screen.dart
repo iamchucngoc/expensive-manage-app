@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../category/data/models/category_model.dart';
 import '../../../category/data/services/category_service.dart';
+import '../../../budget/data/services/budget_service.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/services/transaction_service.dart';
 
@@ -166,6 +167,72 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     });
   }
 
+  Future<bool> _checkBudgetBeforeSave(CategoryModel selectedCategoryModel, double newAmount) async {
+    if (!isExpense || newAmount <= 0) {
+      return true;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return true;
+    }
+
+    final budget = await BudgetService().getBudget(user.uid, selectedDate.month, selectedDate.year).first;
+    if (budget == null) {
+      return true;
+    }
+
+    final categoryBudget = budget.categoryBudgets[selectedCategoryModel.name] ?? 0.0;
+    if (categoryBudget <= 0) {
+      return true;
+    }
+
+    final transactionService = Provider.of<TransactionService>(context, listen: false);
+    final transactions = await transactionService.getTransactions(user.uid).first;
+    double currentMonthlySpend = transactions
+        .where((t) =>
+            t.type == TransactionType.expense &&
+            t.categoryName == selectedCategoryModel.name &&
+            t.date.year == selectedDate.year &&
+            t.date.month == selectedDate.month)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    if (widget.editingTransaction != null) {
+      final editingTransaction = widget.editingTransaction!;
+      final isSameCategoryAndMonth = editingTransaction.categoryName == selectedCategoryModel.name &&
+          editingTransaction.date.year == selectedDate.year &&
+          editingTransaction.date.month == selectedDate.month;
+      if (isSameCategoryAndMonth) {
+        currentMonthlySpend -= editingTransaction.amount;
+      }
+    }
+
+    if (!BudgetService.shouldWarnBudgetExceeded(
+      newAmount: newAmount,
+      categoryBudget: categoryBudget,
+      currentMonthlySpend: currentMonthlySpend,
+    )) {
+      return true;
+    }
+
+    final shouldContinue = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Cảnh báo vượt ngân sách', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Text(
+          'Thêm khoản chi này sẽ vượt ngân sách cho danh mục "${selectedCategoryModel.name}" trong tháng ${selectedDate.month}/${selectedDate.year}.\n\nBạn có muốn tiếp tục không?',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          CupertinoDialogAction(child: const Text('Hủy', style: TextStyle(color: Colors.grey)), onPressed: () => Navigator.pop(context, false)),
+          CupertinoDialogAction(child: const Text('Tiếp tục', style: TextStyle(color: Colors.blue)), onPressed: () => Navigator.pop(context, true)),
+        ],
+      ),
+    );
+
+    return shouldContinue == true;
+  }
+
   Future<void> saveTransaction(List<CategoryModel> categories) async {
     if (amount == '0') {
       final shouldContinue = await showCupertinoDialog<bool>(
@@ -194,6 +261,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     try {
       final selectedCategoryModel = categories.firstWhere((e) => e.name == selectedCategory);
+      final newAmount = double.tryParse(amount) ?? 0;
+      final shouldProceed = await _checkBudgetBeforeSave(selectedCategoryModel, newAmount);
+      if (!shouldProceed) {
+        return;
+      }
+
       final transactionId = widget.editingTransaction?.id ?? const Uuid().v4();
       final transaction = TransactionModel(
         id: transactionId,
