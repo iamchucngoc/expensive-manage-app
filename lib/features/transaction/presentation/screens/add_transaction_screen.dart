@@ -4,11 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../category/data/models/category_model.dart';
 import '../../../category/data/services/category_service.dart';
 import '../../../budget/data/services/budget_service.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/services/receipt_ocr_service.dart';
 import '../../data/services/transaction_service.dart';
 
 import '../widgets/amount_keyboard.dart';
@@ -25,12 +27,16 @@ class AddTransactionScreen extends StatefulWidget {
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final CategoryService categoryService = CategoryService();
+  final ReceiptOcrService _receiptOcrService = ReceiptOcrService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   bool isExpense = true;
   String amount = '0';
   DateTime selectedDate = DateTime.now();
   String selectedCategory = '';
   final TextEditingController noteController = TextEditingController();
+  bool _isScanning = false;
+  ReceiptOcrResult? _lastResult;
 
   @override
   void initState() {
@@ -131,6 +137,89 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String _formatMoneyStr(String value) {
     if (value.isEmpty || value == '0') return '0';
     return value.replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  }
+
+  Future<void> _pickReceiptSource() async {
+    if (_isScanning) return;
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Chụp ảnh ngay'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Chọn ảnh từ thư viện'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+    await _processReceiptImage(source);
+  }
+
+  Future<void> _processReceiptImage(ImageSource source) async {
+    setState(() => _isScanning = true);
+
+    try {
+      final XFile? image = await _imagePicker.pickImage(source: source, imageQuality: 90);
+      if (image == null) {
+        if (!mounted) return;
+        setState(() => _isScanning = false);
+        return;
+      }
+
+      final bytes = await image.readAsBytes();
+      final result = await _receiptOcrService.extractFromBytes(bytes);
+      if (!mounted) return;
+
+      final categories = await categoryService.getCategories(FirebaseAuth.instance.currentUser?.uid ?? '').first;
+      final mergedText = [result.merchant, result.note, result.categorySuggestion]
+          .whereType<String>()
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .join(' ');
+      final suggestedCategory = _receiptOcrService.suggestCategory(mergedText, categories);
+      final suggestedNote = _receiptOcrService.suggestNote(result.note);
+
+      setState(() {
+        _isScanning = false;
+        _lastResult = result;
+        if (result.amount != null) {
+          amount = result.amount!.toStringAsFixed(0);
+        }
+        if (result.date != null) {
+          selectedDate = result.date!;
+        }
+        if (suggestedCategory != null && suggestedCategory.isNotEmpty) {
+          selectedCategory = suggestedCategory;
+        }
+        if (suggestedNote != null) {
+          noteController.text = suggestedNote;
+        } else {
+          noteController.text = '';
+        }
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã đọc hóa đơn. Vui lòng kiểm tra lại trước khi lưu.'), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isScanning = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể đọc hóa đơn: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _showSuccessDialog() {
@@ -417,11 +506,42 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     ),
                     const SizedBox(width: 8),
                     const Text('đ', style: TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: _isScanning ? null : _pickReceiptSource,
+                      icon: _isScanning
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.camera_alt_outlined, color: Colors.grey, size: 24),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
+
+            if (_lastResult != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: primaryColor.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Đã đọc hóa đơn', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryColor)),
+                    const SizedBox(height: 6),
+                    if (_lastResult!.merchant != null && _lastResult!.merchant!.isNotEmpty)
+                      Text('Cửa hàng: ${_lastResult!.merchant}', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                    if (_lastResult!.amount != null)
+                      Text('Số tiền: ${_lastResult!.amount!.toStringAsFixed(0)} đ', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                  ],
+                ),
+              ),
 
             const Text('Danh mục', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
             const SizedBox(height: 12),
